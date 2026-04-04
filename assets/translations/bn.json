@@ -25,19 +25,19 @@
   "settings_language": "ভাষা",
   "settings_language_subtitle": "বাংলা",
   "settings_theme": "থিম",
-  "settings_theme_dark": "ডার্ক",
-  "settings_theme_light": "লাইট",
+  "settings_theme_dark": "অন্ধকার",
+  "settings_theme_light": "আলো",
   "settings_theme_system": "সিস্টেম ডিফল্ট",
   "settings_sign_in": "সাইন ইন",
-  "settings_sign_in_subtitle": "ক্লাউড সিঙ্ক ও ব্যাকআপ",
+  "settings_sign_in_subtitle": "ক্লাউডে সংযুক্ত ও ব্যাকআপ করুন",
   "settings_sign_out": "সাইন আউট",
-  "settings_sign_out_subtitle": "সুপাবেস থেকে সংযোগ বিচ্ছিন্ন করুন",
+  "settings_sign_out_subtitle": "গুগল থেকে সংযোগ বিচ্ছিন্ন করুন",
   "settings_sign_out_confirm": "আপনি কি সাইন আউট করতে চান?",
   "settings_sign_out_cancel": "বাতিল",
 
   "offline_mode": "অফলাইন মোড",
   "connected_cloud": "ক্লাউডে সংযুক্ত",
-  "sign_in_to_sync": "ডেটা সিঙ্ক করতে সাইন ইন করুন",
+  "sign_in_to_sync": "গুগলে সংযুক্ত করুন",
 
   "stats_title": "পরিসংখ্যান",
   "stats_total": "মোট",
@@ -51,7 +51,7 @@
 
   "login_title": "স্বাগতম",
   "login_google": "গুগল দিয়ে প্রবেশ করুন",
-  "login_subtitle": "ডিভাইস জুড়ে নামাজ সিঙ্ক করতে সাইন ইন করুন",
+  "login_subtitle": "নামাজের তথ্য ক্লাউডে সংযুক্ত করতে সাইন ইন করুন",
 
   "stats_current_streak": "বর্তমান টানা উপস্থিতি",
   "stats_day": "দিন",
