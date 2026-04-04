@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_constants.dart';
 import '../../services/auth_service.dart';
+import '../../data/repositories/prayer_repository.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -17,6 +18,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       await AuthService.instance.signInWithIdToken();
+      
+      final user = AuthService.instance.currentUser;
+      if (user != null) {
+        final repo = PrayerRepository(user.id);
+        // Bi-directional sync
+        await repo.syncFromRemote();
+        await repo.syncToRemote();
+      }
       // Router handles navigation to tracker on auth success
     } catch (e) {
       if (mounted) {

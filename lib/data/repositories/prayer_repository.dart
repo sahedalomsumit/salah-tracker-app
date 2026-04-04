@@ -75,4 +75,12 @@ class PrayerRepository {
       await _local.upsertRecord(record);
     }
   }
+
+  /// Push all local records to remote
+  Future<void> syncToRemote() async {
+    final localRecords = await _local.getAll();
+    for (final record in localRecords) {
+      await _remote.upsertRecord(record);
+    }
+  }
 }

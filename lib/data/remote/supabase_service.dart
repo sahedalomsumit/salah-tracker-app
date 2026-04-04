@@ -8,22 +8,34 @@ class SupabaseService {
 
   SupabaseClient get _client => Supabase.instance.client;
 
-  /// Sync a single record to Supabase (upsert)
+  /// Sync a single record to Supabase (upsert equivalent)
   Future<void> upsertRecord(PrayerRecord record) async {
     final user = _client.auth.currentUser;
     if (user == null) return;
 
     try {
-      await _client.from('prayers').upsert(
-        {
+      final existing = await _client
+          .from('prayers')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('date', record.date)
+          .eq('prayer_name', record.prayerName)
+          .maybeSingle();
+
+      if (existing != null) {
+        await _client.from('prayers').update({
+          'status': record.status.key,
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', existing['id']);
+      } else {
+        await _client.from('prayers').insert({
           'user_id': user.id,
           'date': record.date,
           'prayer_name': record.prayerName,
           'status': record.status.key,
           'updated_at': DateTime.now().toIso8601String(),
-        },
-        onConflict: 'user_id,date,prayer_name',
-      );
+        });
+      }
     } catch (e) {
       // Silently fail — offline-first, local is source of truth
       // ignore: avoid_print

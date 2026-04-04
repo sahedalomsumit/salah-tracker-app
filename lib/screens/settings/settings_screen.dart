@@ -60,14 +60,19 @@ class SettingsScreen extends ConsumerWidget {
                   backgroundColor: user != null
                       ? AppColors.softEmerald
                       : AppColors.grey.withValues(alpha: 0.2),
-                  child: Text(
-                    user?.email?.substring(0, 1).toUpperCase() ?? '?',
-                    style: TextStyle(
-                      color: user != null ? AppColors.lightText : AppColors.grey,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                    ),
-                  ),
+                  backgroundImage: user != null && user.userMetadata?['avatar_url'] != null
+                      ? NetworkImage(user.userMetadata!['avatar_url'])
+                      : null,
+                  child: user != null && user.userMetadata?['avatar_url'] != null
+                      ? null
+                      : Text(
+                          user?.email?.substring(0, 1).toUpperCase() ?? '?',
+                          style: TextStyle(
+                            color: user != null ? AppColors.lightText : AppColors.grey,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                          ),
+                        ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -84,8 +89,7 @@ class SettingsScreen extends ConsumerWidget {
                         user != null
                             ? 'connected_cloud'.tr()
                             : 'sign_in_to_sync'.tr(),
-                        style:
-                            TextStyle(color: AppColors.grey, fontSize: 13),
+                        style: TextStyle(color: AppColors.grey, fontSize: 13),
                       ),
                     ],
                   ),
@@ -195,7 +199,7 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 48),
           Center(
             child: Text(
-              '© ${DateTime.now().year} Sahed Alom Sumit // Built with good vibes and clean code',
+              '© ${DateTime.now().year} Sahed Alom Sumit \n   // Built with good vibes and clean code',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppColors.grey.withValues(alpha: 0.5),
@@ -250,8 +254,11 @@ class _ThemePickerSheet extends StatelessWidget {
     final options = [
       (ThemeMode.dark, Icons.dark_mode_rounded, 'settings_theme_dark'.tr()),
       (ThemeMode.light, Icons.light_mode_rounded, 'settings_theme_light'.tr()),
-      (ThemeMode.system, Icons.brightness_auto_rounded,
-          'settings_theme_system'.tr()),
+      (
+        ThemeMode.system,
+        Icons.brightness_auto_rounded,
+        'settings_theme_system'.tr()
+      ),
     ];
 
     return Padding(
@@ -283,9 +290,7 @@ class _ThemePickerSheet extends StatelessWidget {
                 label: label,
                 isSelected: isSelected,
                 onTap: () async {
-                  await ref
-                      .read(themeModeProvider.notifier)
-                      .setTheme(mode);
+                  await ref.read(themeModeProvider.notifier).setTheme(mode);
                   if (context.mounted) Navigator.of(context).pop();
                 },
               ),
@@ -333,7 +338,8 @@ class _LanguagePickerSheet extends StatelessWidget {
           const SizedBox(height: 16),
           ...options.map((opt) {
             final (locale, flag, label) = opt;
-            final isSelected = currentLocale.languageCode == locale.languageCode;
+            final isSelected =
+                currentLocale.languageCode == locale.languageCode;
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: _PickerOption(
@@ -393,25 +399,22 @@ class _PickerOption extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             child: Row(
               children: [
                 if (flag != null)
                   Text(flag!, style: const TextStyle(fontSize: 24))
                 else if (icon != null)
                   Icon(icon,
-                      color: isSelected
-                          ? AppColors.softEmerald
-                          : AppColors.grey,
+                      color:
+                          isSelected ? AppColors.softEmerald : AppColors.grey,
                       size: 22),
                 const SizedBox(width: 14),
                 Text(
                   label,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: isSelected ? AppColors.softEmerald : null,
-                    fontWeight:
-                        isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
                 const Spacer(),

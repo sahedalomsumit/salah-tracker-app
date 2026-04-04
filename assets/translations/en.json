@@ -31,12 +31,12 @@
   "settings_sign_in": "Sign In",
   "settings_sign_in_subtitle": "Cloud sync & backup",
   "settings_sign_out": "Sign Out",
-  "settings_sign_out_subtitle": "Disconnect from Supabase",
+  "settings_sign_out_subtitle": "Disconnect from Google",
   "settings_sign_out_confirm": "Are you sure you want to sign out?",
   "settings_sign_out_cancel": "Cancel",
 
   "offline_mode": "Offline Mode",
-  "connected_cloud": "Connected to Cloud",
+  "connected_cloud": "Connected to Google",
   "sign_in_to_sync": "Sign in to sync your data",
 
   "stats_title": "Statistics",
