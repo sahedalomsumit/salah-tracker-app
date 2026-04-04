@@ -5,11 +5,11 @@ import '../../core/constants/app_constants.dart';
 import '../../core/utils/date_utils.dart';
 
 class PrayerRepository {
-  PrayerRepository._();
-  static final PrayerRepository instance = PrayerRepository._();
-
-  final _local = DatabaseHelper.instance;
+  final String userId;
+  final DatabaseHelper _local;
   final _remote = SupabaseService.instance;
+
+  PrayerRepository(this.userId) : _local = DatabaseHelper(userId);
 
   /// Upsert a prayer status — writes locally first, then syncs to Supabase
   Future<void> updateStatus({

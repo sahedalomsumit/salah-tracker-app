@@ -4,10 +4,10 @@ import '../models/prayer_record.dart';
 import '../../core/constants/app_constants.dart';
 
 class DatabaseHelper {
-  DatabaseHelper._();
-  static final DatabaseHelper instance = DatabaseHelper._();
+  final String userId;
+  DatabaseHelper(this.userId);
 
-  static Database? _db;
+  Database? _db;
 
   Future<Database> get db async {
     _db ??= await _initDb();
@@ -16,7 +16,7 @@ class DatabaseHelper {
 
   Future<Database> _initDb() async {
     final dbPath = await getDatabasesPath();
-    final path = p.join(dbPath, 'salah_tracker.db');
+    final path = p.join(dbPath, 'salah_$userId.db');
     return openDatabase(
       path,
       version: 1,

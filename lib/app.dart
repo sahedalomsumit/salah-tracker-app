@@ -4,38 +4,54 @@ import 'core/theme/app_theme.dart';
 import 'screens/tracker/tracker_screen.dart';
 import 'screens/stats/stats_screen.dart';
 import 'screens/settings/settings_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'providers/auth_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // ── Router ────────────────────────────────────────────────────────────────────
 
-final _router = GoRouter(
-  initialLocation: '/tracker',
-  routes: [
-    StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) =>
-          _ScaffoldWithNavBar(navigationShell: navigationShell),
-      branches: [
-        StatefulShellBranch(routes: [
-          GoRoute(
-            path: '/tracker',
-            builder: (_, __) => const TrackerScreen(),
-          ),
-        ]),
-        StatefulShellBranch(routes: [
-          GoRoute(
-            path: '/stats',
-            builder: (_, __) => const StatsScreen(),
-          ),
-        ]),
-        StatefulShellBranch(routes: [
-          GoRoute(
-            path: '/settings',
-            builder: (_, __) => const SettingsScreen(),
-          ),
-        ]),
-      ],
-    ),
-  ],
-);
+final _routerProvider = Provider<GoRouter>((ref) {
+  final authStatus = ref.watch(isAuthenticatedProvider);
+
+  return GoRouter(
+    initialLocation: '/tracker',
+    redirect: (context, state) {
+      final isLoggingIn = state.matchedLocation == '/login';
+      if (authStatus && isLoggingIn) return '/tracker';
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: '/login',
+        builder: (_, __) => const LoginScreen(),
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            _ScaffoldWithNavBar(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/tracker',
+              builder: (_, __) => const TrackerScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/stats',
+              builder: (_, __) => const StatsScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/settings',
+              builder: (_, __) => const SettingsScreen(),
+            ),
+          ]),
+        ],
+      ),
+    ],
+  );
+});
 
 // ── Bottom Nav Shell ──────────────────────────────────────────────────────────
 
@@ -76,16 +92,17 @@ class _ScaffoldWithNavBar extends StatelessWidget {
 
 // ── App ───────────────────────────────────────────────────────────────────────
 
-class SalahTrackerApp extends StatelessWidget {
+class SalahTrackerApp extends ConsumerWidget {
   const SalahTrackerApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(_routerProvider);
     return MaterialApp.router(
       title: 'Salah Tracker',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
-      routerConfig: _router,
+      routerConfig: router,
     );
   }
 }

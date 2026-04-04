@@ -1,8 +1,11 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../data/models/prayer_record.dart';
 import '../data/repositories/prayer_repository.dart';
 import '../core/utils/date_utils.dart';
 import '../core/utils/calculation_utils.dart';
+import 'prayer_provider.dart';
+
+part 'stats_provider.g.dart';
 
 // ── Stats state model ─────────────────────────────────────────────────────────
 
@@ -30,35 +33,31 @@ class StatsState {
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 
-final statsProvider = AsyncNotifierProvider<StatsNotifier, StatsState>(
-  StatsNotifier.new,
-);
-
-class StatsNotifier extends AsyncNotifier<StatsState> {
-  PrayerRepository get _repo => PrayerRepository.instance;
-
+@riverpod
+class Stats extends _$Stats {
   @override
-  Future<StatsState> build() async {
-    return _computeStats();
+  FutureOr<StatsState> build() async {
+    final repo = ref.watch(prayerRepositoryProvider);
+    return _computeStats(repo);
   }
 
-  Future<StatsState> _computeStats() async {
+  Future<StatsState> _computeStats(PrayerRepository repo) async {
     final today = DateTime.now();
     final todayKey = SalahDateUtils.toKey(today);
 
     // Get today's records
-    final todayRecords = await _repo.getDayRecords(todayKey);
+    final todayRecords = await repo.getDayRecords(todayKey);
 
     // Get weekly records (last 7 days)
     final weekDays = SalahDateUtils.lastNDays(7);
-    final weekMap = await _repo.getMultiDayRecords(weekDays);
+    final weekMap = await repo.getMultiDayRecords(weekDays);
 
     // Get monthly records
     final monthDays = SalahDateUtils.currentMonth();
-    final monthMap = await _repo.getMultiDayRecords(monthDays);
+    final monthMap = await repo.getMultiDayRecords(monthDays);
 
-    // Streak: needs all records
-    final allRecords = await _repo.getAllRecords();
+    // Streak: needs all records from local DB
+    final allRecords = await repo.getAllRecords();
     final allGrouped = <String, List<PrayerRecord>>{};
     for (final r in allRecords) {
       allGrouped.putIfAbsent(r.date, () => []).add(r);
@@ -73,8 +72,7 @@ class StatsNotifier extends AsyncNotifier<StatsState> {
 
     final weekKeys = weekDays.map(SalahDateUtils.toKey).toList();
     final weekDailyPcts = CalcUtils.dailyPercents(weekKeys, weekMap);
-    final weekLabels =
-        weekDays.map((d) => SalahDateUtils.dayAbbr(d)).toList();
+    final weekLabels = weekDays.map((d) => SalahDateUtils.dayAbbr(d)).toList();
 
     return StatsState(
       streak: streak,
@@ -89,7 +87,7 @@ class StatsNotifier extends AsyncNotifier<StatsState> {
   }
 
   Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(_computeStats);
+    ref.invalidateSelf();
+    await future;
   }
 }

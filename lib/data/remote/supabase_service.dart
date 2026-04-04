@@ -10,15 +10,19 @@ class SupabaseService {
 
   /// Sync a single record to Supabase (upsert)
   Future<void> upsertRecord(PrayerRecord record) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+
     try {
       await _client.from('prayers').upsert(
         {
+          'user_id': user.id,
           'date': record.date,
           'prayer_name': record.prayerName,
           'status': record.status.key,
           'updated_at': DateTime.now().toIso8601String(),
         },
-        onConflict: 'date,prayer_name',
+        onConflict: 'user_id,date,prayer_name',
       );
     } catch (e) {
       // Silently fail — offline-first, local is source of truth

@@ -1,73 +1,61 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../data/models/prayer_record.dart';
 import '../data/repositories/prayer_repository.dart';
-import '../core/constants/app_constants.dart';
 import '../core/utils/date_utils.dart';
+import '../core/constants/app_constants.dart';
+import 'auth_provider.dart';
 
-/// State: map of prayerName → PrayerRecord for the selected day
-typedef DayPrayerState = AsyncValue<List<PrayerRecord>>;
+part 'prayer_provider.g.dart';
 
-/// Currently viewed date
-final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
+@riverpod
+PrayerRepository prayerRepository(Ref ref) {
+  final user = ref.watch(sessionUserProvider);
+  // Default to a guest ID if not logged in, but repository normally needs a real ID
+  return PrayerRepository(user?.id ?? 'guest_user');
+}
 
-/// Prayer records for the selected date
-final dayPrayersProvider =
-    AsyncNotifierProvider<DayPrayersNotifier, List<PrayerRecord>>(
-  DayPrayersNotifier.new,
-);
-
-class DayPrayersNotifier extends AsyncNotifier<List<PrayerRecord>> {
-  PrayerRepository get _repo => PrayerRepository.instance;
-
+@riverpod
+class SelectedDate extends _$SelectedDate {
   @override
-  Future<List<PrayerRecord>> build() async {
-    // Watch selected date so we reload when it changes
-    final date = ref.watch(selectedDateProvider);
-    return _loadDay(SalahDateUtils.toKey(date));
+  DateTime build() => DateTime.now();
+
+  void nextDay() {
+    state = state.add(const Duration(days: 1));
   }
 
-  Future<List<PrayerRecord>> _loadDay(String dateKey) =>
-      _repo.getDayRecords(dateKey);
+  void previousDay() {
+    state = state.subtract(const Duration(days: 1));
+  }
 
-  /// Update a prayer's status for the current day
+  void goToToday() {
+    state = DateTime.now();
+  }
+}
+
+@riverpod
+class DayPrayers extends _$DayPrayers {
+  @override
+  FutureOr<List<PrayerRecord>> build() async {
+    final date = ref.watch(selectedDateProvider);
+    final repository = ref.watch(prayerRepositoryProvider);
+    return repository.getDayRecords(SalahDateUtils.toKey(date));
+  }
+
   Future<void> updateStatus(String prayerName, PrayerStatus status) async {
-    final date = SalahDateUtils.toKey(ref.read(selectedDateProvider));
-
-    // Optimistic update
-    final current = state.valueOrNull ?? [];
-    state = AsyncData(
-      current.map((r) {
-        if (r.prayerName == prayerName) return r.copyWith(status: status);
-        return r;
-      }).toList(),
-    );
-
-    // Persist
-    await _repo.updateStatus(
-      date: date,
+    final date = ref.read(selectedDateProvider);
+    final repository = ref.read(prayerRepositoryProvider);
+    
+    await repository.updateStatus(
+      date: SalahDateUtils.toKey(date),
       prayerName: prayerName,
       status: status,
     );
+    
+    // Refresh the data
+    ref.invalidateSelf();
   }
 
-  /// Navigate to previous day
-  void previousDay() {
-    ref.read(selectedDateProvider.notifier).update(
-          (d) => d.subtract(const Duration(days: 1)),
-        );
-  }
-
-  /// Navigate to next day (can't go beyond today)
-  void nextDay() {
-    ref.read(selectedDateProvider.notifier).update((d) {
-      final next = d.add(const Duration(days: 1));
-      if (next.isAfter(DateTime.now())) return d;
-      return next;
-    });
-  }
-
-  /// Go back to today
-  void goToToday() {
-    ref.read(selectedDateProvider.notifier).state = DateTime.now();
-  }
+  void nextDay() => ref.read(selectedDateProvider.notifier).nextDay();
+  void previousDay() => ref.read(selectedDateProvider.notifier).previousDay();
+  void goToToday() => ref.read(selectedDateProvider.notifier).goToToday();
 }

@@ -1,62 +1,35 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
 
 class NotificationService {
   NotificationService._();
   static final NotificationService instance = NotificationService._();
 
-  final _plugin = FlutterLocalNotificationsPlugin();
+  final _notifications = FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+    tz.initializeTimeZones();
+    
+    const initializationSettings = InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      iOS: DarwinInitializationSettings(),
     );
-    const settings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-    await _plugin.initialize(settings);
+
+    // Based on lint: settings is a required named parameter
+    await _notifications.initialize(settings: initializationSettings); 
   }
 
-  /// Schedule a simple daily notification for a prayer
-  Future<void> schedulePrayerReminder({
-    required int id,
-    required String prayerName,
-    required int hour,
-    required int minute,
-  }) async {
-    const androidDetails = AndroidNotificationDetails(
-      'salah_reminders',
-      'Prayer Reminders',
-      channelDescription: 'Daily prayer time reminders',
-      importance: Importance.high,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
-    );
-    const iosDetails = DarwinNotificationDetails();
+  Future<void> showReminder(String title, String body) async {
     const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
+      android: AndroidNotificationDetails('salah_channel', 'Salah Reminders'),
+      iOS: DarwinNotificationDetails(),
     );
-
-    await _plugin.periodicallyShow(
-      id,
-      '🕌 Time for $prayerName',
-      'Don\'t forget to pray $prayerName.',
-      RepeatInterval.daily,
-      details,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    
+    await _notifications.show(
+      id: 0,
+      title: title,
+      body: body,
+      notificationDetails: details,
     );
-  }
-
-  Future<void> cancelReminder(int id) async {
-    await _plugin.cancel(id);
-  }
-
-  Future<void> cancelAll() async {
-    await _plugin.cancelAll();
   }
 }

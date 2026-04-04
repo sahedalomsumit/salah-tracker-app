@@ -1,256 +1,210 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
-import '../../services/notification_service.dart';
-
-// ── Settings providers ────────────────────────────────────────────────────────
-
-final notificationsEnabledProvider =
-    StateNotifierProvider<NotifToggleNotifier, Map<String, bool>>((ref) {
-  return NotifToggleNotifier();
-});
-
-class NotifToggleNotifier extends StateNotifier<Map<String, bool>> {
-  NotifToggleNotifier() : super({}) {
-    _load();
-  }
-
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final map = <String, bool>{};
-    for (final name in kPrayerNames) {
-      map[name] = prefs.getBool('notif_$name') ?? true;
-    }
-    state = map;
-  }
-
-  Future<void> toggle(String prayerName) async {
-    final current = state[prayerName] ?? true;
-    final updated = {...state, prayerName: !current};
-    state = updated;
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notif_$prayerName', !current);
-
-    final index = kPrayerNames.indexOf(prayerName);
-    if (!current) {
-      // Enabling — schedule a placeholder daily notification
-      await NotificationService.instance.schedulePrayerReminder(
-        id: index,
-        prayerName: prayerName,
-        hour: 6 + index * 3, // placeholder hours
-        minute: 0,
-      );
-    } else {
-      // Disabling
-      await NotificationService.instance.cancelReminder(index);
-    }
-  }
-}
-
-// ── Settings Screen ───────────────────────────────────────────────────────────
+import '../../providers/auth_provider.dart';
+import '../../services/auth_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(sessionUserProvider);
     final theme = Theme.of(context);
-    final notifMap = ref.watch(notificationsEnabledProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        title: const Text('Settings'),
+      ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         children: [
-          // ── Prayer Reminders Section ──────────────────────────────────────
-          const _SectionHeader(label: 'Prayer Reminders'),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface1,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: List.generate(kPrayerNames.length, (i) {
-                final name = kPrayerNames[i];
-                final enabled = notifMap[name] ?? true;
-                return Column(
-                  children: [
-                    _ReminderTile(
-                      prayerName: name,
-                      arabicName: kPrayerArabic[i],
-                      icon: kPrayerIcons[i],
-                      enabled: enabled,
-                      onToggle: () => ref
-                          .read(notificationsEnabledProvider.notifier)
-                          .toggle(name),
-                    ),
-                    if (i < kPrayerNames.length - 1)
-                      const Divider(
-                        indent: 20,
-                        endIndent: 20,
-                        height: 1,
-                      ),
-                  ],
-                );
-              }),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // ── About Card ────────────────────────────────────────────────────
-          const _SectionHeader(label: 'About'),
-          const SizedBox(height: 12),
+          // ── User Profile ──────────────────────────────────────────────────
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: AppColors.surface1,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                // App logo
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppColors.deepGreen, AppColors.softEmerald],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(Icons.mosque_rounded,
-                      color: AppColors.lightText, size: 34),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Salah Tracker',
-                  style: theme.textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Version 1.0.0',
-                  style: theme.textTheme.bodySmall,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Track your 5 daily prayers and build consistency '
-                  'through simple, mindful logging.',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.grey,
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // ── Supabase badge ────────────────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            decoration: BoxDecoration(
-              color: AppColors.surface1,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A2E),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.cloud_done_rounded,
-                      color: Color(0xFF3ECF8E), size: 20),
-                ),
-                const SizedBox(width: 14),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Cloud Sync', style: theme.textTheme.titleMedium),
-                    Text(
-                      'Powered by Supabase',
-                      style: theme.textTheme.bodySmall,
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: user != null ? AppColors.softEmerald : AppColors.grey.withValues(alpha: 0.2),
+                  child: Text(
+                    user?.email?.substring(0, 1).toUpperCase() ?? '?',
+                    style: TextStyle(
+                      color: user != null ? AppColors.lightText : AppColors.grey,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
                     ),
-                  ],
+                  ),
                 ),
-                const Spacer(),
-                const Icon(Icons.check_circle_rounded,
-                    color: Color(0xFF3ECF8E), size: 20),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user?.email ?? 'Offline Mode',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user != null ? 'Connected to Cloud' : 'Sign in to sync your data',
+                        style: const TextStyle(color: AppColors.grey, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+                if (user == null)
+                  ElevatedButton(
+                    onPressed: () => context.push('/login'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.softEmerald,
+                      foregroundColor: AppColors.deepGreen,
+                      minimumSize: const Size(80, 36),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
               ],
             ),
           ),
+          const SizedBox(height: 32),
+
+          // ── App Settings ──────────────────────────────────────────────────
+          Text(
+            'App Settings',
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: AppColors.softEmerald,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.1,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _SettingsTile(
+            icon: Icons.notifications_none_rounded,
+            title: 'Prayer Notifications',
+            subtitle: 'Reminders for each salah',
+            trailing: Switch(
+              value: true,
+              onChanged: (val) {},
+              activeThumbColor: AppColors.softEmerald,
+            ),
+            onTap: () {},
+          ),
+          _SettingsTile(
+            icon: Icons.language_rounded,
+            title: 'Language',
+            subtitle: 'English',
+            onTap: () {},
+          ),
+          _SettingsTile(
+            icon: Icons.dark_mode_outlined,
+            title: 'Dark Theme',
+            subtitle: 'System default',
+            onTap: () {},
+          ),
+          const SizedBox(height: 40),
+
+          // ── Account Section ───────────────────────────────────────────────
+          Text(
+            'Account',
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: AppColors.softEmerald,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.1,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (user != null)
+            _SettingsTile(
+              icon: Icons.logout_rounded,
+              title: 'Sign Out',
+              subtitle: 'Disconnect from Supabase',
+              color: Colors.redAccent,
+              onTap: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    backgroundColor: AppColors.surface2,
+                    title: const Text('Sign Out'),
+                    content: const Text('Are you sure you want to sign out?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel', style: TextStyle(color: AppColors.grey)),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true) {
+                  await AuthService.instance.signOut();
+                }
+              },
+            )
+          else
+            _SettingsTile(
+              icon: Icons.login_rounded,
+              title: 'Sign In',
+              subtitle: 'Cloud sync & backup',
+              onTap: () => context.push('/login'),
+            ),
         ],
       ),
     );
   }
 }
 
-// ── Section Header ────────────────────────────────────────────────────────────
-
-class _SectionHeader extends StatelessWidget {
-  final String label;
-  const _SectionHeader({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label.toUpperCase(),
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: AppColors.grey,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.2,
-          ),
-    );
-  }
-}
-
-// ── Reminder Tile ─────────────────────────────────────────────────────────────
-
-class _ReminderTile extends StatelessWidget {
-  final String prayerName;
-  final String arabicName;
+class _SettingsTile extends StatelessWidget {
   final IconData icon;
-  final bool enabled;
-  final VoidCallback onToggle;
+  final String title;
+  final String subtitle;
+  final Widget? trailing;
+  final VoidCallback onTap;
+  final Color? color;
 
-  const _ReminderTile({
-    required this.prayerName,
-    required this.arabicName,
+  const _SettingsTile({
     required this.icon,
-    required this.enabled,
-    required this.onToggle,
+    required this.title,
+    required this.subtitle,
+    this.trailing,
+    required this.onTap,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
       leading: Container(
-        width: 40,
-        height: 40,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
-          color: AppColors.deepGreen,
-          borderRadius: BorderRadius.circular(10),
+          color: AppColors.surface1,
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: AppColors.softEmerald, size: 20),
+        child: Icon(icon, color: color ?? AppColors.softEmerald, size: 22),
       ),
-      title: Text(prayerName, style: theme.textTheme.titleMedium),
-      subtitle: Text(arabicName,
-          style: theme.textTheme.bodySmall?.copyWith(fontSize: 13)),
-      trailing: Switch(
-        value: enabled,
-        onChanged: (_) => onToggle(),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
       ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(color: AppColors.grey, fontSize: 13),
+      ),
+      trailing: trailing ?? const Icon(Icons.chevron_right_rounded, color: AppColors.grey),
     );
   }
 }
