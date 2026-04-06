@@ -76,7 +76,7 @@ class StatsScreen extends ConsumerWidget {
 
               // ── Weekly Bar Chart ──────────────────────────────────────────
               _WeeklyBarChart(
-                percents: stats.weeklyDailyPercents,
+                statusCounts: stats.weeklyDailyStatusCounts,
                 labels: stats.weeklyLabels,
               ),
               const SizedBox(height: 20),
@@ -246,10 +246,10 @@ class _StatMiniCard extends StatelessWidget {
 // ── Weekly Bar Chart ──────────────────────────────────────────────────────────
 
 class _WeeklyBarChart extends StatelessWidget {
-  final List<double> percents;
+  final List<Map<String, int>> statusCounts;
   final List<String> labels;
 
-  const _WeeklyBarChart({required this.percents, required this.labels});
+  const _WeeklyBarChart({required this.statusCounts, required this.labels});
 
   @override
   Widget build(BuildContext context) {
@@ -272,26 +272,43 @@ class _WeeklyBarChart extends StatelessWidget {
           const SizedBox(height: 20),
           SizedBox(
             height: 160,
-            child: percents.isEmpty
+            child: statusCounts.isEmpty
                 ? Center(
                     child: Text('stats_no_data'.tr(),
                         style: const TextStyle(color: AppColors.grey)))
                 : BarChart(
                     BarChartData(
-                      maxY: 100,
+                      maxY: 5,
                       minY: 0,
                       barTouchData: BarTouchData(
                         touchTooltipData: BarTouchTooltipData(
                           tooltipPadding: const EdgeInsets.all(8),
                           tooltipMargin: 6,
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                            final counts = statusCounts[groupIndex];
+                            final onTime = counts['onTime'] ?? 0;
+                            final qaza = counts['qaza'] ?? 0;
+                            final missed = counts['missed'] ?? 0;
+                            final total = onTime + qaza;
+
                             return BarTooltipItem(
-                              '${rod.toY.toStringAsFixed(0)}%',
+                              '$total done',
                               const TextStyle(
                                 color: AppColors.lightText,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
                               ),
+                              children: [
+                                if (missed > 0)
+                                  TextSpan(
+                                    text: '\n$missed missed',
+                                    style: const TextStyle(
+                                      color: Colors.redAccent,
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                              ],
                             );
                           },
                         ),
@@ -300,10 +317,10 @@ class _WeeklyBarChart extends StatelessWidget {
                         leftTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 36,
-                            interval: 50,
+                            reservedSize: 28,
+                            interval: 1,
                             getTitlesWidget: (value, _) => Text(
-                              '${value.toInt()}%',
+                              '${value.toInt()}',
                               style: const TextStyle(
                                   color: AppColors.grey, fontSize: 10),
                             ),
@@ -336,37 +353,50 @@ class _WeeklyBarChart extends StatelessWidget {
                       gridData: FlGridData(
                         show: true,
                         drawVerticalLine: false,
-                        horizontalInterval: 50,
+                        horizontalInterval: 1,
                         getDrawingHorizontalLine: (_) => FlLine(
                           color: theme.dividerColor,
                           strokeWidth: 1,
                         ),
                       ),
                       borderData: FlBorderData(show: false),
-                      barGroups: List.generate(percents.length, (i) {
-                        final pct = percents[i];
-                        Color barColor;
-                        if (pct >= 80) {
-                          barColor = AppColors.softEmerald;
-                        } else if (pct >= 40) {
-                          barColor = AppColors.qaza;
-                        } else {
-                          barColor = pct == 0
-                              ? AppColors.grey.withValues(alpha: 0.3)
-                              : AppColors.missed;
+                      barGroups: List.generate(statusCounts.length, (i) {
+                        final counts = statusCounts[i];
+                        final onTime = (counts['onTime'] ?? 0).toDouble();
+                        final qaza = (counts['qaza'] ?? 0).toDouble();
+                        final missed = (counts['missed'] ?? 0).toDouble();
+
+                        final List<BarChartRodStackItem> stackItems = [];
+                        double currentY = 0;
+                        if (onTime > 0) {
+                          stackItems.add(BarChartRodStackItem(currentY,
+                              currentY + onTime, AppColors.softEmerald));
+                          currentY += onTime;
                         }
+                        if (qaza > 0) {
+                          stackItems.add(BarChartRodStackItem(
+                              currentY, currentY + qaza, AppColors.qaza));
+                          currentY += qaza;
+                        }
+                        if (missed > 0) {
+                          stackItems.add(BarChartRodStackItem(
+                              currentY, currentY + missed, AppColors.missed));
+                          currentY += missed;
+                        }
+
                         return BarChartGroupData(
                           x: i,
                           barRods: [
                             BarChartRodData(
-                              toY: pct,
-                              color: barColor,
+                              toY: 5,
+                              color: Colors.transparent,
                               width: 22,
                               borderRadius: BorderRadius.circular(6),
+                              rodStackItems: stackItems,
                               backDrawRodData: BackgroundBarChartRodData(
                                 show: true,
-                                toY: 100,
-                                color: barColor.withValues(alpha: 0.08),
+                                toY: 5,
+                                color: AppColors.grey.withValues(alpha: 0.1),
                               ),
                             ),
                           ],

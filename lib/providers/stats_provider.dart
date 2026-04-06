@@ -17,6 +17,7 @@ class StatsState {
   final Map<String, int> weeklyAggregate;   // {onTime, qaza, missed, none}
   final Map<String, int> monthlyAggregate;
   final List<double> weeklyDailyPercents;   // 7 values for bar chart
+  final List<Map<String, int>> weeklyDailyStatusCounts; // detailed counts for stacked bar
   final List<String> weeklyLabels;
 
   const StatsState({
@@ -27,6 +28,7 @@ class StatsState {
     this.weeklyAggregate = const {},
     this.monthlyAggregate = const {},
     this.weeklyDailyPercents = const [],
+    this.weeklyDailyStatusCounts = const [],
     this.weeklyLabels = const [],
   });
 }
@@ -72,6 +74,7 @@ class Stats extends _$Stats {
 
     final weekKeys = weekDays.map(SalahDateUtils.toKey).toList();
     final weekDailyPcts = CalcUtils.dailyPercents(weekKeys, weekMap);
+    final weekDailyCounts = CalcUtils.dailyStatusCounts(weekKeys, weekMap);
     final weekLabels = weekDays.map((d) => SalahDateUtils.dayAbbr(d)).toList();
 
     return StatsState(
@@ -82,6 +85,7 @@ class Stats extends _$Stats {
       weeklyAggregate: weekAgg,
       monthlyAggregate: monthAgg,
       weeklyDailyPercents: weekDailyPcts,
+      weeklyDailyStatusCounts: weekDailyCounts,
       weeklyLabels: weekLabels,
     );
   }

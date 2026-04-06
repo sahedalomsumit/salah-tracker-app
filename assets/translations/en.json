@@ -67,5 +67,11 @@
   "stats_no_data_short": "No data",
   "stats_monthly_summary": "Monthly Summary",
   "stats_current_month": "Current calendar month",
-  "stats_prayers_on_time": "prayers on time"
+  "stats_prayers_on_time": "prayers on time",
+  "settings_sadaqah_text": "If you benefit from this ad-free app, you may give Sadaqah to support it for maintenance.",
+  "settings_bkash_send_money": "bKash Send Money",
+  "settings_bkash_description": "For Bangladeshi people, you can send Sadaqah via bKash to the following number:",
+  "settings_bkash_copied": "Copied to clipboard",
+  "settings_bkash_tap_to_copy": "Tap to copy",
+  "settings_close": "Close"
 }

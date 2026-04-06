@@ -38,6 +38,8 @@ void main() async {
       supportedLocales: const [Locale('en'), Locale('bn')],
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
+      startLocale: const Locale('en'),
+      useOnlyLangCode: true,
       child: const ProviderScope(
         child: _AppWithTheme(),
       ),

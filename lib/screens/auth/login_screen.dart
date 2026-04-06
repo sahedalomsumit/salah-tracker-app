@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_constants.dart';
 import '../../services/auth_service.dart';
 import '../../data/repositories/prayer_repository.dart';
+import '../../providers/prayer_provider.dart';
+import '../../providers/stats_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -25,6 +27,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         // Bi-directional sync
         await repo.syncFromRemote();
         await repo.syncToRemote();
+        
+        // Refresh providers to show newly synced data immediately
+        ref.invalidate(dayPrayersProvider);
+        ref.invalidate(statsProvider);
       }
       // Router handles navigation to tracker on auth success
     } catch (e) {

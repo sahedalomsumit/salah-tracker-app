@@ -4,13 +4,13 @@ import '../../data/models/prayer_record.dart';
 class CalcUtils {
   CalcUtils._();
 
-  /// Daily completion % — counts onTime prayers out of 5
+  /// Daily completion % — counts onTime + qaza out of 5
   static double dailyCompletionPercent(List<PrayerRecord> records) {
     if (records.isEmpty) return 0;
-    final onTime = records
-        .where((r) => r.status == PrayerStatus.onTime)
+    final doneCount = records
+        .where((r) => r.status == PrayerStatus.onTime || r.status == PrayerStatus.qaza)
         .length;
-    return (onTime / 5) * 100;
+    return (doneCount / 5) * 100;
   }
 
   /// Full completion = all 5 on time (no missed, no qaza)
@@ -19,19 +19,23 @@ class CalcUtils {
     return records.every((r) => r.status == PrayerStatus.onTime);
   }
 
-  /// Whether a day has any missed prayers
-  static bool hasMissed(List<PrayerRecord> records) =>
-      records.any((r) => r.status == PrayerStatus.missed);
+  /// Whether a day is fully completed (onTime + qaza = 5) for streak calculation
+  static bool isDayCompletedForStreak(List<PrayerRecord> records) {
+    if (records.isEmpty) return false;
+    final doneCount = records
+        .where((r) => r.status == PrayerStatus.onTime || r.status == PrayerStatus.qaza)
+        .length;
+    return doneCount == 5;
+  }
 
-  /// Count current streak: consecutive days (backwards from today) with no missed prayers.
+  /// Count current streak: consecutive days (backwards from today) with all 5 prayers done (onTime / qaza).
   /// dayRecords: map of dateKey → list of PrayerRecord
   static int calculateStreak(Map<String, List<PrayerRecord>> dayRecords) {
     final keys = dayRecords.keys.toList()..sort((a, b) => b.compareTo(a));
     int streak = 0;
     for (final key in keys) {
       final records = dayRecords[key]!;
-      if (records.isEmpty) break; // no data = break
-      if (hasMissed(records)) break;
+      if (!isDayCompletedForStreak(records)) break;
       streak++;
     }
     return streak;
@@ -76,16 +80,35 @@ class CalcUtils {
     }).toList();
   }
 
+  /// Get status breakdown for each day for the stacked bar chart
+  static List<Map<String, int>> dailyStatusCounts(
+      List<String> dateKeys, Map<String, List<PrayerRecord>> dayRecords) {
+    return dateKeys.map((key) {
+      final records = dayRecords[key] ?? [];
+      int onTime = 0, qaza = 0, missed = 0;
+      for (final r in records) {
+        if (r.status == PrayerStatus.onTime) onTime++;
+        if (r.status == PrayerStatus.qaza) qaza++;
+        if (r.status == PrayerStatus.missed) missed++;
+      }
+      return {
+        'onTime': onTime,
+        'qaza': qaza,
+        'missed': missed,
+      };
+    }).toList();
+  }
+
   /// Overall completion % across multiple days (logged prayers only)
   static double overallPercent(Map<String, List<PrayerRecord>> dayRecords) {
-    int onTime = 0, total = 0;
+    int done = 0, total = 0;
     for (final records in dayRecords.values) {
       for (final r in records) {
         if (r.status != PrayerStatus.none) total++;
-        if (r.status == PrayerStatus.onTime) onTime++;
+        if (r.status == PrayerStatus.onTime || r.status == PrayerStatus.qaza) done++;
       }
     }
     if (total == 0) return 0;
-    return (onTime / total) * 100;
+    return (done / total) * 100;
   }
 }

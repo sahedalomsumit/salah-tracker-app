@@ -1,7 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -60,19 +62,23 @@ class SettingsScreen extends ConsumerWidget {
                   backgroundColor: user != null
                       ? AppColors.softEmerald
                       : AppColors.grey.withValues(alpha: 0.2),
-                  backgroundImage: user != null && user.userMetadata?['avatar_url'] != null
-                      ? NetworkImage(user.userMetadata!['avatar_url'])
-                      : null,
-                  child: user != null && user.userMetadata?['avatar_url'] != null
-                      ? null
-                      : Text(
-                          user?.email?.substring(0, 1).toUpperCase() ?? '?',
-                          style: TextStyle(
-                            color: user != null ? AppColors.lightText : AppColors.grey,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 24,
-                          ),
-                        ),
+                  backgroundImage:
+                      user != null && user.userMetadata?['avatar_url'] != null
+                          ? NetworkImage(user.userMetadata!['avatar_url'])
+                          : null,
+                  child:
+                      user != null && user.userMetadata?['avatar_url'] != null
+                          ? null
+                          : Text(
+                              user?.email?.substring(0, 1).toUpperCase() ?? '?',
+                              style: TextStyle(
+                                color: user != null
+                                    ? AppColors.lightText
+                                    : AppColors.grey,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 24,
+                              ),
+                            ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -196,6 +202,96 @@ class SettingsScreen extends ConsumerWidget {
               surfaceColor: surfaceIcon,
               onTap: () => context.push('/login'),
             ),
+          const SizedBox(height: 40),
+
+          // ── Sadaqah Section ───────────────────────────────────────────────
+          Text(
+            'Sadaqah',
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: AppColors.softEmerald,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.1,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: surfaceBg,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                  color: AppColors.softEmerald.withValues(alpha: 0.15)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'settings_sadaqah_text'.tr(),
+                  style: TextStyle(
+                    color: AppColors.grey,
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final uri = Uri.parse(
+                              'https://donate.stripe.com/3cI8wO6bWcqd7F46az8AE01');
+                          try {
+                            // Try to launch external application directly (more reliable on modern Android)
+                            final launched = await launchUrl(uri,
+                                mode: LaunchMode.externalApplication);
+                            if (!launched && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Could not open donation page')),
+                              );
+                            }
+                          } catch (e) {
+                            debugPrint('Error launching Stripe URL: $e');
+                          }
+                        },
+                        icon: const Icon(Icons.payment_rounded, size: 20),
+                        label: const Text('Stripe'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color(0xFF635BFF), // Stripe Color
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          _showBkashDialog(context);
+                        },
+                        icon: const Icon(Icons.send_rounded, size: 20),
+                        label: const Text('bKash'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color(0xFFE2136E), // bKash Color
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 48),
           Center(
             child: Text(
@@ -235,6 +331,111 @@ class SettingsScreen extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => const _LanguagePickerSheet(),
+    );
+  }
+
+  void _showBkashDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? AppColors.surface2Dark : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('settings_bkash_send_money'.tr(),
+            textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Image.asset(
+                'assets/icon/bkash-icon.webp',
+                width: 44,
+                height: 44,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.account_balance_wallet_rounded,
+                    size: 44,
+                    color: Color(0xFFE2136E)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'settings_bkash_description'.tr(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.grey),
+            ),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: () {
+                Clipboard.setData(const ClipboardData(text: '01773615582'));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('settings_bkash_copied'.tr()),
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.surface3Dark
+                      : AppColors.surface2Light,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFE2136E).withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      '01773615582',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2,
+                        color: Color(0xFFE2136E),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'settings_bkash_tap_to_copy'.tr(),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('settings_close'.tr(),
+                style: const TextStyle(color: AppColors.grey)),
+          ),
+        ],
+      ),
     );
   }
 }

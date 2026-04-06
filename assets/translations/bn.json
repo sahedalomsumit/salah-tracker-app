@@ -67,5 +67,11 @@
   "stats_no_data_short": "ডেটা নেই",
   "stats_monthly_summary": "মাসিক সারাংশ",
   "stats_current_month": "বর্তমান ক্যালেন্ডার মাস",
-  "stats_prayers_on_time": "নামাজ সময়মতো"
+  "stats_prayers_on_time": "নামাজ সময়মতো",
+  "settings_sadaqah_text": "আপনি যদি এই বিজ্ঞাপন-মুক্ত অ্যাপটি থেকে উপকৃত হন, তবে এর রক্ষণাবেক্ষণের জন্য সাদাকা দিতে পারেন।",
+  "settings_bkash_send_money": "বিকাশ সেন্ড মানি",
+  "settings_bkash_description": "বাংলাদেশি ব্যবহারকারীদের জন্য, আপনি নিচের নাম্বারে বিকাশের মাধ্যমে সাদাকা পাঠাতে পারেন:",
+  "settings_bkash_copied": "কপি করা হয়েছে",
+  "settings_bkash_tap_to_copy": "কপি করতে ট্যাপ করুন",
+  "settings_close": "বন্ধ করুন"
 }
