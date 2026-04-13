@@ -5,6 +5,8 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../core/constants/app_constants.dart';
 import '../../providers/stats_provider.dart';
 import '../../providers/prayer_provider.dart';
+import '../../core/utils/date_utils.dart';
+import 'components/stats_pagination_header.dart';
 
 class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});
@@ -78,15 +80,27 @@ class StatsScreen extends ConsumerWidget {
               _WeeklyBarChart(
                 statusCounts: stats.weeklyDailyStatusCounts,
                 labels: stats.weeklyLabels,
+                rangeLabel: stats.weeklyRangeLabel,
+                onOffsetChanged: (d) => ref.read(statsProvider.notifier).changeWeeklyOffset(d),
               ),
               const SizedBox(height: 20),
 
-              // ── Status Pie Chart ──────────────────────────────────────────
-              _StatusPieChart(aggregate: stats.weeklyAggregate),
+              // ── Monthly Distribution Pie Chart ───────────────────────────
+              _StatusPieChart(
+                aggregate: stats.monthlyAggregate,
+                rangeLabel: stats.monthlyRangeLabel,
+                titleKey: 'stats_monthly_distribution',
+                onOffsetChanged: (d) => ref.read(statsProvider.notifier).changeMonthlyOffset(d),
+              ),
               const SizedBox(height: 20),
 
-              // ── Monthly Summary ────────────────────────────────────────────
-              _MonthlySummaryCard(aggregate: stats.monthlyAggregate),
+              // ── Yearly Summary Card (with integrated Line Graph) ─────────
+              _YearlySummaryCard(
+                aggregate: stats.yearlyAggregate,
+                label: stats.yearlyLabel,
+                monthlyPercents: stats.yearlyMonthlyPercents,
+                onOffsetChanged: (d) => ref.read(statsProvider.notifier).changeYearlyOffset(d),
+              ),
             ],
           ),
         ),
@@ -248,8 +262,15 @@ class _StatMiniCard extends StatelessWidget {
 class _WeeklyBarChart extends StatelessWidget {
   final List<Map<String, int>> statusCounts;
   final List<String> labels;
+  final String rangeLabel;
+  final Function(int) onOffsetChanged;
 
-  const _WeeklyBarChart({required this.statusCounts, required this.labels});
+  const _WeeklyBarChart({
+    required this.statusCounts,
+    required this.labels,
+    required this.rangeLabel,
+    required this.onOffsetChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -263,11 +284,11 @@ class _WeeklyBarChart extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('stats_7_day_overview'.tr(), style: theme.textTheme.titleMedium),
-          const SizedBox(height: 4),
-          Text(
-            'stats_daily_completion'.tr(),
-            style: theme.textTheme.bodySmall,
+          StatsPaginationHeader(
+            title: 'stats_7_day_overview'.tr(),
+            subtitle: rangeLabel,
+            onBack: () => onOffsetChanged(1),
+            onForward: () => onOffsetChanged(-1),
           ),
           const SizedBox(height: 20),
           SizedBox(
@@ -415,7 +436,16 @@ class _WeeklyBarChart extends StatelessWidget {
 
 class _StatusPieChart extends StatefulWidget {
   final Map<String, int> aggregate;
-  const _StatusPieChart({required this.aggregate});
+  final String rangeLabel;
+  final String titleKey;
+  final Function(int) onOffsetChanged;
+
+  const _StatusPieChart({
+    required this.aggregate,
+    required this.rangeLabel,
+    required this.titleKey,
+    required this.onOffsetChanged,
+  });
 
   @override
   State<_StatusPieChart> createState() => _StatusPieChartState();
@@ -430,7 +460,8 @@ class _StatusPieChartState extends State<_StatusPieChart> {
     final onTime = widget.aggregate['onTime'] ?? 0;
     final qaza = widget.aggregate['qaza'] ?? 0;
     final missed = widget.aggregate['missed'] ?? 0;
-    final total = onTime + qaza + missed;
+    final notAdded = widget.aggregate['notAdded'] ?? 0;
+    final total = onTime + qaza + missed + notAdded;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -441,9 +472,12 @@ class _StatusPieChartState extends State<_StatusPieChart> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('stats_weekly_distribution'.tr(),
-              style: theme.textTheme.titleMedium),
-          Text('stats_prayer_breakdown'.tr(), style: theme.textTheme.bodySmall),
+          StatsPaginationHeader(
+            title: widget.titleKey.tr(),
+            subtitle: widget.rangeLabel,
+            onBack: () => widget.onOffsetChanged(1),
+            onForward: () => widget.onOffsetChanged(-1),
+          ),
           const SizedBox(height: 20),
           Row(
             children: [
@@ -481,6 +515,9 @@ class _StatusPieChartState extends State<_StatusPieChart> {
                                 'stats_qaza'.tr(), 1),
                             _pieSection(missed, total, AppColors.missed,
                                 'stats_missed'.tr(), 2),
+                            if ((widget.aggregate['notAdded'] ?? 0) > 0)
+                              _pieSection(widget.aggregate['notAdded']!, total,
+                                  AppColors.statusNone, 'stats_not_added'.tr(), 3),
                           ],
                         ),
                       ),
@@ -495,16 +532,23 @@ class _StatusPieChartState extends State<_StatusPieChart> {
                         color: AppColors.onTime,
                         label: 'stats_on_time'.tr(),
                         count: onTime),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     _LegendItem(
                         color: AppColors.qaza,
                         label: 'stats_qaza'.tr(),
                         count: qaza),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     _LegendItem(
                         color: AppColors.missed,
                         label: 'stats_missed'.tr(),
                         count: missed),
+                    if ((widget.aggregate['notAdded'] ?? 0) > 0) ...[
+                      const SizedBox(height: 8),
+                      _LegendItem(
+                          color: AppColors.statusNone,
+                          label: 'stats_not_added'.tr(),
+                          count: widget.aggregate['notAdded']!),
+                    ],
                   ],
                 ),
               ),
@@ -566,11 +610,20 @@ class _LegendItem extends StatelessWidget {
   }
 }
 
-// ── Monthly Summary Card ──────────────────────────────────────────────────────
+// ── Yearly Summary Card ──────────────────────────────────────────────────────
 
-class _MonthlySummaryCard extends StatelessWidget {
+class _YearlySummaryCard extends StatelessWidget {
   final Map<String, int> aggregate;
-  const _MonthlySummaryCard({required this.aggregate});
+  final String label;
+  final List<double> monthlyPercents;
+  final Function(int) onOffsetChanged;
+
+  const _YearlySummaryCard({
+    required this.aggregate,
+    required this.label,
+    required this.monthlyPercents,
+    required this.onOffsetChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -578,7 +631,8 @@ class _MonthlySummaryCard extends StatelessWidget {
     final onTime = aggregate['onTime'] ?? 0;
     final qaza = aggregate['qaza'] ?? 0;
     final missed = aggregate['missed'] ?? 0;
-    final total = onTime + qaza + missed;
+    final notAdded = aggregate['notAdded'] ?? 0;
+    final total = onTime + qaza + missed + notAdded;
     final pct = total == 0 ? 0.0 : (onTime / total * 100);
 
     return Container(
@@ -590,9 +644,12 @@ class _MonthlySummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('stats_monthly_summary'.tr(),
-              style: theme.textTheme.titleMedium),
-          Text('stats_current_month'.tr(), style: theme.textTheme.bodySmall),
+          StatsPaginationHeader(
+            title: 'stats_yearly_summary'.tr(),
+            subtitle: label,
+            onBack: () => onOffsetChanged(1),
+            onForward: () => onOffsetChanged(-1),
+          ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -608,9 +665,26 @@ class _MonthlySummaryCard extends StatelessWidget {
                   label: 'stats_missed'.tr(),
                   color: AppColors.missed),
               _MonthStat(
-                  value: total,
-                  label: 'stats_total'.tr(),
-                  color: AppColors.softEmerald),
+                  value: notAdded,
+                  label: 'stats_not_added'.tr(),
+                  color: AppColors.statusNone),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Text(
+                'stats_total'.tr(),
+                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              Text(
+                '$total',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.softEmerald,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -637,10 +711,99 @@ class _MonthlySummaryCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 180,
+            child: !_hasData
+                ? Center(
+                    child: Text('stats_no_data'.tr(),
+                        style: const TextStyle(color: AppColors.grey)))
+                : LineChart(
+                    LineChartData(
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: false,
+                        horizontalInterval: 25,
+                        getDrawingHorizontalLine: (value) => FlLine(
+                          color: theme.dividerColor.withValues(alpha: 0.5),
+                          strokeWidth: 1,
+                        ),
+                      ),
+                      titlesData: FlTitlesData(
+                        show: true,
+                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 30,
+                            interval: 1,
+                            getTitlesWidget: (value, meta) {
+                              final int index = value.toInt();
+                              if (index < 0 || index >= 12 || (index % 2 != 0 && index != 11)) {
+                                return const SizedBox();
+                              }
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  SalahDateUtils.monthAbbr(index + 1),
+                                  style: const TextStyle(color: AppColors.grey, fontSize: 10),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            interval: 25,
+                            reservedSize: 32,
+                            getTitlesWidget: (value, meta) {
+                              return Text(
+                                '${value.toInt()}',
+                                style: const TextStyle(color: AppColors.grey, fontSize: 10),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      minX: 0,
+                      maxX: 11,
+                      minY: 0,
+                      maxY: 100,
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: List.generate(12, (i) => FlSpot(i.toDouble(), monthlyPercents[i])),
+                          isCurved: true,
+                          color: AppColors.softEmerald,
+                          barWidth: 3,
+                          isStrokeCapRound: true,
+                          dotData: const FlDotData(show: false),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.softEmerald.withValues(alpha: 0.3),
+                                AppColors.softEmerald.withValues(alpha: 0),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
         ],
       ),
     );
   }
+
+  bool get _hasData => monthlyPercents.any((v) => v > 0);
 }
 
 class _MonthStat extends StatelessWidget {
@@ -658,13 +821,17 @@ class _MonthStat extends StatelessWidget {
       children: [
         Text(
           '$value',
-          style: theme.textTheme.headlineLarge?.copyWith(
+          style: theme.textTheme.titleLarge?.copyWith(
             color: color,
             fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: 4),
-        Text(label, style: theme.textTheme.bodySmall),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(fontSize: 10),
+          textAlign: TextAlign.center,
+        ),
       ],
     );
   }

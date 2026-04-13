@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/app_info_provider.dart';
 import '../../services/auth_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -293,6 +294,23 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 48),
+          ref.watch(appVersionProvider).when(
+                data: (version) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Center(
+                    child: Text(
+                      '${'settings_version'.tr()} $version',
+                      style: TextStyle(
+                        color: AppColors.grey.withValues(alpha: 0.5),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                loading: () => const SizedBox(),
+                error: (e, __) => const SizedBox(),
+              ),
           Center(
             child: Text(
               '© ${DateTime.now().year} Sahed Alom Sumit \n   // Built with good vibes and clean code',

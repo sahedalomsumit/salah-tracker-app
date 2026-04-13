@@ -33,31 +33,60 @@ class SalahDateUtils {
   /// Whether a date key is today
   static bool isToday(String key) => key == todayKey();
 
-  /// Get a list of [days] dates ending today (inclusive), oldest first
-  static List<DateTime> lastNDays(int days) {
-    final today = DateTime.now();
+  /// Get a list of [count] dates ending [offset] days ago (inclusive), oldest first
+  static List<DateTime> lastNDays(int count, {int offset = 0}) {
+    final today = DateTime.now().subtract(Duration(days: offset));
     return List.generate(
-      days,
-      (i) => today.subtract(Duration(days: days - 1 - i)),
+      count,
+      (i) => today.subtract(Duration(days: count - 1 - i)),
     );
   }
 
-  /// Get dates of the current calendar week (Mon–Sun)
-  static List<DateTime> currentWeek() {
-    final today = DateTime.now();
+  /// Get dates of a specific calendar week (Mon–Sun) relative to today
+  static List<DateTime> getWeekDays({int weeksAgo = 0}) {
+    final today = DateTime.now().subtract(Duration(days: weeksAgo * 7));
     final monday = today.subtract(Duration(days: today.weekday - 1));
     return List.generate(7, (i) => monday.add(Duration(days: i)));
   }
 
-  /// Get dates of the current calendar month
-  static List<DateTime> currentMonth() {
+  /// Get dates of a specific calendar month relative to today
+  static List<DateTime> getMonthDays({int monthsAgo = 0}) {
     final now = DateTime.now();
-    final first = DateTime(now.year, now.month, 1);
-    final last = DateTime(now.year, now.month + 1, 0);
+    // Calculate the target month and year
+    int targetMonth = now.month - monthsAgo;
+    int targetYear = now.year;
+    
+    while (targetMonth <= 0) {
+      targetMonth += 12;
+      targetYear -= 1;
+    }
+
+    final first = DateTime(targetYear, targetMonth, 1);
+    final nextMonthFirst = DateTime(targetYear, targetMonth + 1, 1);
+    final last = nextMonthFirst.subtract(const Duration(days: 1));
+    
     final count = last.day;
+    return List.generate(count, (i) => first.add(Duration(days: i)));
+  }
+
+  /// Get all dates for a specific year relative to today
+  static List<DateTime> getYearDays({int yearsAgo = 0}) {
+    final targetYear = DateTime.now().year - yearsAgo;
+    final first = DateTime(targetYear, 1, 1);
+    final last = DateTime(targetYear, 12, 31);
+    final count = last.difference(first).inDays + 1;
     return List.generate(count, (i) => first.add(Duration(days: i)));
   }
 
   /// Day-of-week abbreviations
   static String dayAbbr(DateTime date) => DateFormat('EEE').format(date);
+
+  /// Month name (e.g., January)
+  static String monthName(int month) => DateFormat('MMMM').format(DateTime(2024, month));
+
+  /// Month abbreviation (e.g., Jan)
+  static String monthAbbr(int month) => DateFormat('MMM').format(DateTime(2024, month));
+
+  /// Year label (e.g., 2024)
+  static String yearLabel(DateTime date) => DateFormat('yyyy').format(date);
 }
