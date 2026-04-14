@@ -43,12 +43,16 @@ class SupabaseService {
     }
   }
 
-  /// Fetch all records from Supabase for a given date
+  /// Fetch all records from Supabase for a given date (for the current user)
   Future<List<PrayerRecord>> fetchByDate(String date) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return [];
+
     try {
       final res = await _client
           .from('prayers')
           .select()
+          .eq('user_id', user.id)
           .eq('date', date);
       return (res as List)
           .map((m) => PrayerRecord(
@@ -65,12 +69,16 @@ class SupabaseService {
     }
   }
 
-  /// Fetch records since a given date (for sync on app start)
+  /// Fetch records since a given date (for the current user)
   Future<List<PrayerRecord>> fetchSince(String fromDate) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return [];
+
     try {
       final res = await _client
           .from('prayers')
           .select()
+          .eq('user_id', user.id)
           .gte('date', fromDate)
           .order('date');
       return (res as List)
@@ -85,6 +93,67 @@ class SupabaseService {
       // ignore: avoid_print
       print('[Supabase] fetchSince failed: $e');
       return [];
+    }
+  }
+
+  /// Get user role from profiles table
+  Future<String> getRole(String userId) async {
+    try {
+      final res = await _client
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
+      return res?['role']?.toString() ?? 'user';
+    } catch (e) {
+      return 'user';
+    }
+  }
+
+  /// Admin: Fetch all records for a specific user
+  Future<List<PrayerRecord>> fetchByUserId(String userId) async {
+    try {
+      final res = await _client
+          .from('prayers')
+          .select()
+          .eq('user_id', userId)
+          .order('date', ascending: false);
+      return (res as List)
+          .map((m) => PrayerRecord(
+                id: m['id']?.toString(),
+                date: m['date'] as String,
+                prayerName: m['prayer_name'] as String,
+                status: statusFromKey(m['status'] as String?),
+              ))
+          .toList();
+    } catch (e) {
+      // ignore: avoid_print
+      print('[Supabase] fetchByUserId failed: $e');
+      return [];
+    }
+  }
+
+  /// Admin: Fetch all registered users
+  Future<List<Map<String, dynamic>>> fetchAllProfiles() async {
+    try {
+      final res = await _client
+          .from('profiles')
+          .select('id, full_name, avatar_url, role');
+      return List<Map<String, dynamic>>.from(res as List);
+    } catch (e) {
+      // ignore: avoid_print
+      print('[Supabase] fetchAllProfiles failed: $e');
+      return [];
+    }
+  }
+
+  /// Admin/User: Delete a record
+  Future<void> deleteRecord(String recordId) async {
+    try {
+      await _client.from('prayers').delete().eq('id', recordId);
+    } catch (e) {
+      // ignore: avoid_print
+      print('[Supabase] deleteRecord failed: $e');
     }
   }
 }

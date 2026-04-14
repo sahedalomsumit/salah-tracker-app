@@ -9,6 +9,8 @@ import 'screens/tracker/tracker_screen.dart';
 import 'screens/stats/stats_screen.dart';
 import 'screens/settings/settings_screen.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/admin/admin_dashboard_screen.dart';
+import 'screens/admin/user_detail_screen.dart';
 
 // ── Router ────────────────────────────────────────────────────────────────────
 
@@ -49,6 +51,22 @@ final _routerProvider = Provider<GoRouter>((ref) {
               builder: (_, __) => const SettingsScreen(),
             ),
           ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/admin',
+              builder: (_, __) => const AdminDashboardScreen(),
+              routes: [
+                GoRoute(
+                  path: 'user/:userId',
+                  builder: (context, state) {
+                    final userId = state.pathParameters['userId']!;
+                    final profile = state.extra as Map<String, dynamic>;
+                    return UserDetailScreen(userId: userId, profile: profile);
+                  },
+                ),
+              ],
+            ),
+          ]),
         ],
       ),
     ],
@@ -57,20 +75,21 @@ final _routerProvider = Provider<GoRouter>((ref) {
 
 // ── Bottom Nav Shell ──────────────────────────────────────────────────────────
 
-class _ScaffoldWithNavBar extends StatelessWidget {
+class _ScaffoldWithNavBar extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
   const _ScaffoldWithNavBar({required this.navigationShell});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isAdmin = ref.watch(isAdminProvider);
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) =>
-            navigationShell.goBranch(
-                index, initialLocation: index == navigationShell.currentIndex),
+        onDestinationSelected: (index) => navigationShell.goBranch(index,
+            initialLocation: index == navigationShell.currentIndex),
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.home_outlined),
@@ -87,6 +106,12 @@ class _ScaffoldWithNavBar extends StatelessWidget {
             selectedIcon: const Icon(Icons.settings_rounded),
             label: 'nav_settings'.tr(),
           ),
+          if (isAdmin)
+            NavigationDestination(
+              icon: const Icon(Icons.admin_panel_settings_outlined),
+              selectedIcon: const Icon(Icons.admin_panel_settings_rounded),
+              label: 'nav_admin'.tr(),
+            ),
         ],
       ),
     );

@@ -87,4 +87,14 @@ class DatabaseHelper {
     final d = await db;
     await d.delete('prayers', where: 'date = ?', whereArgs: [date]);
   }
+
+  /// Delete a specific prayer record
+  Future<void> deleteRecord(String date, String prayerName) async {
+    final d = await db;
+    await d.delete(
+      'prayers',
+      where: 'date = ? AND prayerName = ?',
+      whereArgs: [date, prayerName],
+    );
+  }
 }

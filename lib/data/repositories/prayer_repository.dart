@@ -67,10 +67,28 @@ class PrayerRepository {
 
   /// Pull remote data and merge into local DB (called on app start / refresh)
   Future<void> syncFromRemote() async {
-    final thirtyDaysAgo = SalahDateUtils.toKey(
-      DateTime.now().subtract(const Duration(days: 30)),
-    );
+    final now = DateTime.now();
+    final thirtyDaysAgoDate = now.subtract(const Duration(days: 30));
+    final thirtyDaysAgo = SalahDateUtils.toKey(thirtyDaysAgoDate);
+    final today = SalahDateUtils.toKey(now);
+
     final remoteRecords = await _remote.fetchSince(thirtyDaysAgo);
+    final localRecords = await _local.getByDateRange(thirtyDaysAgo, today);
+
+    // Create a set of remote keys for quick lookup
+    final remoteKeys = {
+      for (final r in remoteRecords) '${r.date}_${r.prayerName}'
+    };
+
+    // Delete local records that are NOT in remote and are within the synced range
+    for (final local in localRecords) {
+      final key = '${local.date}_${local.prayerName}';
+      if (!remoteKeys.contains(key)) {
+        await _local.deleteRecord(local.date, local.prayerName);
+      }
+    }
+
+    // Upsert all remote records into local
     for (final record in remoteRecords) {
       await _local.upsertRecord(record);
     }
