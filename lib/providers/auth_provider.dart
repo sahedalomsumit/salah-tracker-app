@@ -1,29 +1,37 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../services/auth_service.dart';
 import '../data/remote/supabase_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-final authStateProvider = StreamProvider<AuthState>((ref) {
-  return AuthService.instance.onAuthStateChange;
-});
+part 'auth_provider.g.dart';
 
-final isAuthenticatedProvider = Provider<bool>((ref) {
+@riverpod
+Stream<AuthState> authState(Ref ref) {
+  return AuthService.instance.onAuthStateChange;
+}
+
+@riverpod
+bool isAuthenticated(Ref ref) {
   final state = ref.watch(authStateProvider).asData?.value;
   return state?.session != null || AuthService.instance.currentUser != null;
-});
+}
 
-final sessionUserProvider = Provider<User?>((ref) {
+@riverpod
+User? sessionUser(Ref ref) {
   final state = ref.watch(authStateProvider).asData?.value;
   return state?.session?.user ?? AuthService.instance.currentUser;
-});
+}
 
-final userRoleProvider = FutureProvider<String>((ref) async {
+@riverpod
+String userRole(Ref ref) {
+  // Watch sessionUser to reactively update role on login/logout
   final user = ref.watch(sessionUserProvider);
   if (user == null) return 'user';
-  return SupabaseService.instance.getRole(user.id);
-});
+  return SupabaseService.instance.getRole();
+}
 
-final isAdminProvider = Provider<bool>((ref) {
-  final role = ref.watch(userRoleProvider).asData?.value;
+@riverpod
+bool isAdmin(Ref ref) {
+  final role = ref.watch(userRoleProvider);
   return role == 'admin';
-});
+}

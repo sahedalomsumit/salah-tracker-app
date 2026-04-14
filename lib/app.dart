@@ -11,6 +11,8 @@ import 'screens/settings/settings_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/admin/admin_dashboard_screen.dart';
 import 'screens/admin/user_detail_screen.dart';
+import 'providers/prayer_provider.dart';
+import 'providers/stats_provider.dart';
 
 // ── Router ────────────────────────────────────────────────────────────────────
 
@@ -125,6 +127,20 @@ class SalahTrackerApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Listen for auth changes and sync data automatically.
+    // This handles both login and app launch with existing session.
+    ref.listen(sessionUserProvider, (previous, next) {
+      if (next != null && previous != next) {
+        // Run sync in the background
+        Future.microtask(() async {
+          await ref.read(prayerRepositoryProvider).syncFromRemote();
+          // Invalidate to refresh UI
+          ref.invalidate(dayPrayersProvider);
+          ref.invalidate(statsProvider);
+        });
+      }
+    });
+
     final router = ref.watch(_routerProvider);
     final themeMode = ref.watch(themeModeProvider);
 

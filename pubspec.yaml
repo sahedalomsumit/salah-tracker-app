@@ -52,7 +52,8 @@ dependencies:
   # Localization
   easy_localization: ^3.0.7
   url_launcher: ^6.3.2
-  package_info_plus: ^10.0.0
+  package_info_plus: ^8.3.0
+  win32: ^5.10.1
 
 dev_dependencies:
   flutter_test:

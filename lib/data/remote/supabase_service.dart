@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/prayer_record.dart';
 import '../../core/constants/app_constants.dart';
@@ -38,8 +39,7 @@ class SupabaseService {
       }
     } catch (e) {
       // Silently fail — offline-first, local is source of truth
-      // ignore: avoid_print
-      print('[Supabase] upsert failed: $e');
+      debugPrint('[Supabase] upsert failed: $e');
     }
   }
 
@@ -63,8 +63,7 @@ class SupabaseService {
               ))
           .toList();
     } catch (e) {
-      // ignore: avoid_print
-      print('[Supabase] fetchByDate failed: $e');
+      debugPrint('[Supabase] fetchByDate failed: $e');
       return [];
     }
   }
@@ -90,24 +89,16 @@ class SupabaseService {
               ))
           .toList();
     } catch (e) {
-      // ignore: avoid_print
-      print('[Supabase] fetchSince failed: $e');
+      debugPrint('[Supabase] fetchSince failed: $e');
       return [];
     }
   }
 
-  /// Get user role from profiles table
-  Future<String> getRole(String userId) async {
-    try {
-      final res = await _client
-          .from('profiles')
-          .select('role')
-          .eq('id', userId)
-          .maybeSingle();
-      return res?['role']?.toString() ?? 'user';
-    } catch (e) {
-      return 'user';
-    }
+  /// Get user role from auth metadata (no DB call needed)
+  String getRole() {
+    final user = _client.auth.currentUser;
+    if (user == null) return 'user';
+    return user.appMetadata['role']?.toString() ?? 'user';
   }
 
   /// Admin: Fetch all records for a specific user
@@ -127,22 +118,20 @@ class SupabaseService {
               ))
           .toList();
     } catch (e) {
-      // ignore: avoid_print
-      print('[Supabase] fetchByUserId failed: $e');
+      debugPrint('[Supabase] fetchByUserId failed: $e');
       return [];
     }
   }
 
-  /// Admin: Fetch all registered users
+  /// Admin: Fetch all registered users (from the secure view)
   Future<List<Map<String, dynamic>>> fetchAllProfiles() async {
     try {
       final res = await _client
-          .from('profiles')
-          .select('id, full_name, avatar_url, role');
+          .from('admin_users_view')
+          .select('id, full_name, avatar_url, role, email');
       return List<Map<String, dynamic>>.from(res as List);
     } catch (e) {
-      // ignore: avoid_print
-      print('[Supabase] fetchAllProfiles failed: $e');
+      debugPrint('[Supabase] fetchAllProfiles failed: $e');
       return [];
     }
   }
@@ -152,8 +141,7 @@ class SupabaseService {
     try {
       await _client.from('prayers').delete().eq('id', recordId);
     } catch (e) {
-      // ignore: avoid_print
-      print('[Supabase] deleteRecord failed: $e');
+      debugPrint('[Supabase] deleteRecord failed: $e');
     }
   }
 }
