@@ -26,7 +26,7 @@ class StatsScreen extends ConsumerWidget {
               // ignore: unused_result
               ref.refresh(dayPrayersProvider);
             },
-            tooltip: 'Refresh',
+            tooltip: 'tooltip_refresh'.tr(),
           ),
         ],
       ),
@@ -34,7 +34,7 @@ class StatsScreen extends ConsumerWidget {
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.softEmerald),
         ),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text('error_loading_prayers'.tr(args: [e.toString()]))),
         data: (stats) => RefreshIndicator(
           color: AppColors.softEmerald,
           backgroundColor: Theme.of(context).cardColor,
@@ -313,7 +313,7 @@ class _WeeklyBarChart extends StatelessWidget {
                             final total = onTime + qaza;
 
                             return BarTooltipItem(
-                              '$total done',
+                              'stats_done_count'.tr(args: [total.toString()]),
                               const TextStyle(
                                 color: AppColors.lightText,
                                 fontWeight: FontWeight.bold,
@@ -321,8 +321,8 @@ class _WeeklyBarChart extends StatelessWidget {
                               ),
                               children: [
                                 if (missed > 0)
-                                  TextSpan(
-                                    text: '\n$missed missed',
+                                   TextSpan(
+                                    text: '\n${'stats_missed_count'.tr(args: [missed.toString()])}',
                                     style: const TextStyle(
                                       color: Colors.redAccent,
                                       fontWeight: FontWeight.normal,

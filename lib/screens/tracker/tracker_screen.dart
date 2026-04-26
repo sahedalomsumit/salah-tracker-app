@@ -39,21 +39,26 @@ class TrackerScreen extends ConsumerWidget {
                   child: CircularProgressIndicator(color: AppColors.softEmerald),
                 ),
                 error: (e, _) => Center(
-                  child: Text('Error loading prayers: $e'),
+                  child: Text('error_loading_prayers'.tr(args: [e.toString()])),
                 ),
-                data: (records) => ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  itemCount: records.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) {
-                    final record = records[i];
-                    return GlassPrayerCard(
-                      index: i,
-                      record: record,
-                      date: selectedDate,
-                      onTap: () => _showStatusSheet(context, ref, record, selectedDate),
-                    );
-                  },
+                data: (records) => RefreshIndicator(
+                  onRefresh: () => ref.read(dayPrayersProvider.notifier).refresh(),
+                  color: AppColors.softEmerald,
+                  child: ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                    itemCount: records.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) {
+                      final record = records[i];
+                      return GlassPrayerCard(
+                        index: i,
+                        record: record,
+                        date: selectedDate,
+                        onTap: () => _showStatusSheet(context, ref, record, selectedDate),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
@@ -256,7 +261,7 @@ class _DateHeader extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.chevron_left_rounded, size: 28),
                 onPressed: onPrev,
-                tooltip: 'Previous day',
+                tooltip: 'tooltip_prev_day'.tr(),
               ),
               GestureDetector(
                 onTap: isToday ? null : onToday,
@@ -285,7 +290,7 @@ class _DateHeader extends StatelessWidget {
                   color: isToday ? AppColors.grey : null,
                 ),
                 onPressed: isToday ? null : onNext,
-                tooltip: 'Next day',
+                tooltip: 'tooltip_next_day'.tr(),
               ),
             ],
           ),

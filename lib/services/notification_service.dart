@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -13,7 +14,8 @@ class NotificationService {
   Future<void> initialize() async {
     tz.initializeTimeZones();
     // Set Bangladesh Timezone (UTC +6)
-    // Note: 'Asia/Dhaka' is the standard for Bangladesh
+    final bdLocation = tz.getLocation('Asia/Dhaka');
+    tz.setLocalLocation(bdLocation);
 
     const initializationSettings = InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
@@ -100,8 +102,8 @@ class NotificationService {
       // and uiLocalNotificationDateInterpretation is removed.
       await _notifications.zonedSchedule(
         id: 100,
-        title: 'Salah Tracker App',
-        body: 'Don\'t forget to log your prayers for today!',
+        title: 'notification_title'.tr(),
+        body: 'notification_body'.tr(),
         scheduledDate: scheduledDate,
         notificationDetails: details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -114,8 +116,8 @@ class NotificationService {
       // Fallback to inexact if exact fails (common on Android 14+ without permission)
       await _notifications.zonedSchedule(
         id: 100,
-        title: 'Salah Tracker App',
-        body: 'Don\'t forget to log your prayers for today!',
+        title: 'notification_title'.tr(),
+        body: 'notification_body'.tr(),
         scheduledDate: scheduledDate,
         notificationDetails: details,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
@@ -139,8 +141,8 @@ class NotificationService {
 
     await _notifications.show(
       id: 99,
-      title: 'Test Notification',
-      body: 'If you see this, notifications are working! 🎉',
+      title: 'notification_test_title'.tr(),
+      body: 'notification_test_body'.tr(),
       notificationDetails: details,
     );
   }

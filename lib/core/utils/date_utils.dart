@@ -1,12 +1,12 @@
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class SalahDateUtils {
   SalahDateUtils._();
 
-  static final _dateFormat = DateFormat('yyyy-MM-dd');
-  static final _displayFormat = DateFormat('EEEE, d MMMM yyyy');
-  static final _shortFormat = DateFormat('EEE, d MMM');
-  static final _monthFormat = DateFormat('MMMM yyyy');
+  static DateFormat get _dateFormat => DateFormat('yyyy-MM-dd');
+  static DateFormat get _displayFormat => DateFormat('EEEE, d MMMM yyyy');
+  static DateFormat get _shortFormat => DateFormat('EEE, d MMM');
+  static DateFormat get _monthFormat => DateFormat('MMMM yyyy');
 
   /// Convert DateTime → storage key (yyyy-MM-dd)
   static String toKey(DateTime date) => _dateFormat.format(date);
@@ -95,9 +95,23 @@ class SalahDateUtils {
     if (prayerName == 'Dhuhr') {
       final date = fromKey(dateKey);
       if (date.weekday == DateTime.friday) {
-        return 'Jummah';
+        return 'prayer_jummah'.tr();
       }
+    }
+    // Map 'Fajr' -> 'prayer_fajr'.tr() etc.
+    final index = _kPrayerNames.indexOf(prayerName);
+    if (index != -1) {
+      return _kPrayerKeys[index].tr();
     }
     return prayerName;
   }
+
+  static const List<String> _kPrayerNames = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+  static const List<String> _kPrayerKeys = [
+    'prayer_fajr',
+    'prayer_dhuhr',
+    'prayer_asr',
+    'prayer_maghrib',
+    'prayer_isha',
+  ];
 }

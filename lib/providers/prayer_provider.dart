@@ -58,4 +58,10 @@ class DayPrayers extends _$DayPrayers {
   void nextDay() => ref.read(selectedDateProvider.notifier).nextDay();
   void previousDay() => ref.read(selectedDateProvider.notifier).previousDay();
   void goToToday() => ref.read(selectedDateProvider.notifier).goToToday();
+
+  Future<void> refresh() async {
+    final repository = ref.read(prayerRepositoryProvider);
+    await repository.syncFromRemote();
+    ref.invalidateSelf();
+  }
 }

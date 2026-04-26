@@ -1,7 +1,7 @@
 name: salah_tracker
 description: A modern Salah tracking app — track your 5 daily prayers and see your progress with offline-first support and cloud sync.
 publish_to: 'none'
-version: 1.2.1+5
+version: 1.2.2+6
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -66,9 +66,10 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
+  remove_alpha_ios: true
   image_path: "assets/icon/app_icon.png"
   min_sdk_android: 21
-  adaptive_icon_background: "#0A0F0D"
+  adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/icon/app_icon.png"
 
 flutter:

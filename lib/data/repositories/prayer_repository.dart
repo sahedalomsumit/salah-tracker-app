@@ -68,12 +68,12 @@ class PrayerRepository {
   /// Pull remote data and merge into local DB (called on app start / refresh)
   Future<void> syncFromRemote() async {
     final now = DateTime.now();
-    final thirtyDaysAgoDate = now.subtract(const Duration(days: 30));
-    final thirtyDaysAgo = SalahDateUtils.toKey(thirtyDaysAgoDate);
+    final ninetyDaysAgoDate = now.subtract(const Duration(days: 90));
+    final ninetyDaysAgo = SalahDateUtils.toKey(ninetyDaysAgoDate);
     final today = SalahDateUtils.toKey(now);
 
-    final remoteRecords = await _remote.fetchSince(thirtyDaysAgo);
-    final localRecords = await _local.getByDateRange(thirtyDaysAgo, today);
+    final remoteRecords = await _remote.fetchSince(ninetyDaysAgo);
+    final localRecords = await _local.getByDateRange(ninetyDaysAgo, today);
 
     // Create a set of remote keys for quick lookup
     final remoteKeys = {

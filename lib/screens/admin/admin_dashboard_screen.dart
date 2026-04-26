@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -33,7 +34,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard'),
+        title: Text('admin_dashboard'.tr()),
         actions: [
           IconButton(
             onPressed: _loadProfiles,
@@ -44,12 +45,12 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _profiles.isEmpty
-              ? const Center(child: Text('No users found'))
+              ? Center(child: Text('admin_no_users'.tr()))
               : ListView.builder(
                   itemCount: _profiles.length,
                   itemBuilder: (context, index) {
                     final profile = _profiles[index];
-                    final fullName = profile['full_name'] ?? 'Unknown User';
+                    final fullName = profile['full_name'] ?? 'admin_unknown_user'.tr();
                     final avatarUrl = profile['avatar_url'];
                     final role = profile['role'] ?? 'user';
                     final userId = profile['id'];
@@ -60,10 +61,10 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                         child: avatarUrl == null ? const Icon(Icons.person) : null,
                       ),
                       title: Text(fullName),
-                      subtitle: Text('Role: $role'),
+                      subtitle: Text('admin_role'.tr(args: [role])),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
-                        context.push('/admin/user/$userId', extra: profile);
+                        context.push('/settings/admin/user/$userId', extra: profile);
                       },
                     );
                   },

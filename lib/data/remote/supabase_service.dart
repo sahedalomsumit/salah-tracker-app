@@ -164,4 +164,22 @@ class SupabaseService {
       debugPrint('[Supabase] adminUpdateStatus failed: $e');
     }
   }
+
+  /// Admin: Delete a specific user's prayer record
+  Future<void> adminDeleteRecord({
+    required String userId,
+    required String date,
+    required String prayerName,
+  }) async {
+    try {
+      await _client
+          .from('prayers')
+          .delete()
+          .eq('user_id', userId)
+          .eq('date', date)
+          .eq('prayer_name', prayerName);
+    } catch (e) {
+      debugPrint('[Supabase] adminDeleteRecord failed: $e');
+    }
+  }
 }

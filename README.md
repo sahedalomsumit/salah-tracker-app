@@ -1,251 +1,107 @@
 # 🕌 Salah Tracker App
 
-Salah Tracker App is an Android app designed to help Muslims stay consistent with
-their daily prayers. It allows users to easily log each Salah and track their
-performance over time.
+![Salah Tracker Hero](assets/images/hero.jpg)
+
+[![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
+[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+[![Riverpod](https://img.shields.io/badge/Riverpod-000000?style=for-the-badge&logo=dart&logoColor=0175C2)](https://riverpod.dev)
+[![Ad-Free](https://img.shields.io/badge/Experience-AD--FREE-red?style=for-the-badge)](https://github.com/sahedalomsumit/salah-tracker)
+
+**Salah Tracker App** is a premium, **AD-FREE** spiritual companion designed to help you track your daily prayers and build a consistent habit through beautiful data visualizations and an elegant, modern interface.
 
 ---
 
-## 🎯 App Goal
+## ✨ Why Salah Tracker App?
 
-Salah Tracker App helps users:
+> [!IMPORTANT]
+> **100% AD-FREE**: Your spiritual journey should be sacred. We guarantee zero interruptions—no pop-ups, no banners, and no video ads. Just you and your devotion.
 
-- Log their 5 daily prayers
-- Track consistency over time
-- Visualize progress through simple statistics
+### 💎 Premium Glassmorphism UI
 
-The focus is on **clarity, calm design, and daily habit building**.
-
----
-
-## ✨ Core Features
-
-### 📱 1. Daily Salah Tracking
-
-Track the 5 daily prayers:
-
-- Fajr
-- Dhuhr
-- Asr
-- Maghrib
-- Isha
-
-Each prayer supports **4 statuses**:
-
-- ✅ Prayed on time
-- 🕰️ Qaza (late)
-- ❌ Missed
-
-Rules:
-
-- Only **one status per prayer per day**
-- Works fully **offline** and **online**
+Experience a stunningly designed interface with translucent "glass" effects, smooth blurs, and premium animations that make tracking your prayers a peaceful and high-end experience.
 
 ---
 
-### 📊 2. Statistics Screen
+## 🚀 Key Features
 
-Infographic-style dashboard:
+### 🔹 Effortless Daily Logging
 
-Includes:
+- **One-Tap Logging**: Record Fajr, Dhuhr, Asr, Maghrib, and Isha instantly.
+- **Jummah Support**: Automatically transitions Dhuhr to Jummah on Fridays.
+- **Detailed Status**: Classify prayers as **On Time**, **Qaza**, or **Missed**.
+- **Historical Editing**: Navigate through time to update past logs with ease.
 
-- Daily completion %
-- Weekly summary
-- Monthly summary
-- Streak counter
+### 📊 Advanced Analytics & Insights
 
-Visuals:
+- **Dynamic Dashboard**: Real-time completion rates for Day, Week, and Month.
+- **Weekly Trends**: Visualized progress with stacked bar charts.
+- **Monthly Distribution**: Pie chart breakdown of your consistency.
+- **Yearly Stats**: High-performance line graphs for long-term growth monitoring.
 
-- Progress bars
-- Pie chart (status distribution)
-- Clean card layout
+### 🔥 Motivation & Streaks
 
----
+- **Prayer Streaks**: Stay motivated with a counter that tracks your consecutive days of perfect prayer logs.
+- **Daily Reminders**: Automated nightly notifications to ensure you never miss a log.
 
-### 🔄 3. Navigation
+### 🔄 Secure Cloud Sync
 
-Bottom tabs:
-
-- Home
-- Statistics
-
----
-
-### 🔔 4. Extra Features
-
-- Prayer reminders (local notifications)
-- Settings screen (toggle reminders)
+- **Google Sign-In**: Securely back up your data via Supabase.
+- **Multi-Device**: Access your spiritual history across all your devices.
+- **Privacy First**: Your data is encrypted and stored securely.
 
 ---
 
-## 🎨 UI / UX Design
+## 🛠️ Tech Stack
 
-### 🌿 Theme Style
+Built with modern technologies for peak performance and reliability:
 
-- Minimal, calm, modern
-- Islamic-inspired palette
-- Smooth spacing & rounded UI
-
----
-
-### 🔤 Typography
-
-- Font: **DM Sans**
-- Clean, readable, modern
+- **Frontend**: Flutter (Material 3)
+- **State Management**: Riverpod (with Code Generation)
+- **Database**: SQLite (Local) + Supabase (Cloud Sync)
+- **Charts**: `fl_chart`
+- **Localization**: `easy_localization` (Supports English & Bangla)
+- **Auth**: Google Sign-In & Supabase Auth
 
 ---
 
-### 💡 UI Principles
+## 📥 Installation
 
-- Spacious layout
-- Rounded cards (12–16px)
-- Soft animations
-- No bright/neon colors
-
----
-
-### 📊 Calculations
-
-#### Daily Completion
-
-```
-(On Time + Mosque) / 5 * 100
-```
-
-#### Weekly / Monthly
-
-- Aggregate by date
-
-#### Streak
-
-- Count consecutive days with no "Missed"
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/sahedalomsumit/salah-tracker.git
+    ```
+2.  **Install dependencies:**
+    ```bash
+    flutter pub get
+    ```
+3.  **Run Build Runner:**
+    ```bash
+    dart run build_runner build --delete-conflicting-outputs
+    ```
+4.  **Run the app:**
+    ```bash
+    flutter run
+    ```
 
 ---
 
-## ⚙️ Tech Stack
+## 🤲 Support Our Mission
 
-### 📱 Frontend
+This app is a labor of love for the Ummah. If you find it helpful, please consider:
 
-- Flutter
-
----
-
-### 🗄️ Backend
-
-- Supabase
+- Giving us a ⭐ on GitHub.
+- Sharing it with your friends and family.
+- Supporting development through **Sadaqah** (Stripe/bKash) via the in-app settings.
 
 ---
 
-### 🧩 Core Technologies
+## 👤 Author
 
-- Dart → main language for Flutter app
-- Flutter SDK → build UI and app structure
-- Material 3 → modern UI components & theming
+**Sahed Alom Sumit**
 
----
-
-### 🧠 State Management
-
-- Riverpod → scalable and clean state management
+- GitHub: [@sahedalomsumit](https://github.com/sahedalomsumit)
+- Website: [sahed.me](https://sahed.me)
 
 ---
 
-### 💾 Local Storage (Offline First)
-
-- sqflite → structured local database (like Room)
-- Hive → fast lightweight storage (optional/simple use)
-
----
-
-### 📊 Charts & Visualization
-
-- fl_chart → pie charts, graphs, statistics UI
-
----
-
-### 📅 Date & Time
-
-- intl → date formatting and localization
-
----
-
-### 🔔 Notifications
-
-- flutter_local_notifications → prayer reminders
-
----
-
-### 🧭 Navigation
-
-- go_router → app routing and navigation
-
----
-
-## 📦 Key Components
-
-### Screens
-
-- Tracker Screen (daily input)
-- Stats Screen (analytics)
-- Settings Screen (notifications)
-
----
-
-### Database
-
-- SQLite schema for prayers
-- CRUD operations
-
----
-
-### State
-
-- Global store for UI + data sync
-
----
-
-### Utilities
-
-- Date helpers
-- Calculation logic
-
----
-
-## 🚀 Development Goals
-
-- Clean, production-ready code
-- Fast and responsive UI
-- Offline-first reliability
-- Online reliability
-- Simple user experience
-- Cloud sync (Supabase
-
----
-
-## 🧩 Future Improvements
-
-- User accounts
-- Backup & restore
-- Advanced analytics
-- Home screen widgets
-
----
-
-## 📌 Notes for AI / Developers
-
-- Keep logic simple
-- Avoid over-engineering
-- Focus on UX clarity
-- Maintain consistent design
-- Optimize for performance
-
----
-
-## 🤲 Purpose
-
-This app helps users build **consistency, discipline, and awareness** in daily
-Salah through simple tracking and reflection.
-
----
-
-**End of README**
+_© 2026 Sahed Alom Sumit. Built with good vibes and clean code._

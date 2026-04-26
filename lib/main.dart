@@ -16,6 +16,7 @@ void main() async {
 
   // Easy localization
   await EasyLocalization.ensureInitialized();
+  Intl.defaultLocale = 'en';
 
   // Supabase initialization
   await Supabase.initialize(

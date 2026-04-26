@@ -160,12 +160,28 @@ class SettingsScreen extends ConsumerWidget {
               await NotificationService.instance.testNotification();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Test notification sent!'),
-                    duration: Duration(seconds: 2),
+                  SnackBar(
+                    content: Text('settings_test_sent'.tr()),
+                    duration: const Duration(seconds: 2),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
+              }
+            },
+          ),
+
+          // Developer Tile
+          _SettingsTile(
+            icon: Icons.person_outline_rounded,
+            title: 'settings_developer'.tr(),
+            subtitle: 'sahedalomsumit.com',
+            surfaceColor: surfaceIcon,
+            onTap: () async {
+              final uri = Uri.parse('https://sahedalomsumit.com');
+              try {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } catch (e) {
+                debugPrint('Error launching developer URL: $e');
               }
             },
           ),
@@ -228,7 +244,7 @@ class SettingsScreen extends ConsumerWidget {
 
           // ── Sadaqah Section ───────────────────────────────────────────────
           Text(
-            'Sadaqah',
+            'settings_sadaqah'.tr(),
             style: theme.textTheme.titleSmall?.copyWith(
               color: AppColors.softEmerald,
               fontWeight: FontWeight.bold,
@@ -269,8 +285,8 @@ class SettingsScreen extends ConsumerWidget {
                                 mode: LaunchMode.externalApplication);
                             if (!launched && context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Could not open donation page')),
+                                SnackBar(
+                                    content: Text('settings_donation_error'.tr())),
                               );
                             }
                           } catch (e) {
@@ -278,7 +294,7 @@ class SettingsScreen extends ConsumerWidget {
                           }
                         },
                         icon: const Icon(Icons.payment_rounded, size: 20),
-                        label: const Text('Stripe'),
+                        label: Text('settings_stripe'.tr()),
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               const Color(0xFF635BFF), // Stripe Color
@@ -297,7 +313,7 @@ class SettingsScreen extends ConsumerWidget {
                           _showBkashDialog(context);
                         },
                         icon: const Icon(Icons.send_rounded, size: 20),
-                        label: const Text('bKash'),
+                        label: Text('settings_bkash'.tr()),
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               const Color(0xFFE2136E), // bKash Color
@@ -314,7 +330,29 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: 40),
+
+          // ── Admin Section ─────────────────────────────────────────────────
+          if (ref.watch(isAdminProvider)) ...[
+            Text(
+              'nav_admin'.tr(),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: AppColors.softEmerald,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.1,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _SettingsTile(
+              icon: Icons.admin_panel_settings_outlined,
+              title: 'nav_admin'.tr(),
+              subtitle: 'admin_manage_users'.tr(),
+              surfaceColor: surfaceIcon,
+              onTap: () => context.push('/settings/admin'),
+            ),
+            const SizedBox(height: 40),
+          ],
+
           ref.watch(appVersionProvider).when(
                 data: (version) => Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
@@ -334,7 +372,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
           Center(
             child: Text(
-              '© ${DateTime.now().year} Sahed Alom Sumit \n   // Built with good vibes and clean code',
+              '© ${DateTime.now().year} Sahed Alom Sumit \n   // ${'settings_built_with'.tr()}',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppColors.grey.withValues(alpha: 0.5),
@@ -588,6 +626,7 @@ class _LanguagePickerSheet extends StatelessWidget {
                 isSelected: isSelected,
                 onTap: () async {
                   await context.setLocale(locale);
+                  Intl.defaultLocale = locale.toString();
                   if (context.mounted) Navigator.of(context).pop();
                 },
               ),

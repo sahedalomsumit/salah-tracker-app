@@ -56,20 +56,20 @@ final _routerProvider = Provider<GoRouter>((ref) {
             GoRoute(
               path: '/settings',
               builder: (_, __) => const SettingsScreen(),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/admin',
-              builder: (_, __) => const AdminDashboardScreen(),
               routes: [
                 GoRoute(
-                  path: 'user/:userId',
-                  builder: (context, state) {
-                    final userId = state.pathParameters['userId']!;
-                    final profile = state.extra as Map<String, dynamic>;
-                    return UserDetailScreen(userId: userId, profile: profile);
-                  },
+                  path: 'admin',
+                  builder: (_, __) => const AdminDashboardScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'user/:userId',
+                      builder: (context, state) {
+                        final userId = state.pathParameters['userId']!;
+                        final profile = state.extra as Map<String, dynamic>;
+                        return UserDetailScreen(userId: userId, profile: profile);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -89,8 +89,6 @@ class _ScaffoldWithNavBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isAdmin = ref.watch(isAdminProvider);
-
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
@@ -113,12 +111,6 @@ class _ScaffoldWithNavBar extends ConsumerWidget {
             selectedIcon: const Icon(Icons.settings_rounded),
             label: 'nav_settings'.tr(),
           ),
-          if (isAdmin)
-            NavigationDestination(
-              icon: const Icon(Icons.admin_panel_settings_outlined),
-              selectedIcon: const Icon(Icons.admin_panel_settings_rounded),
-              label: 'nav_admin'.tr(),
-            ),
         ],
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_constants.dart';
@@ -6,8 +7,6 @@ import '../../data/repositories/prayer_repository.dart';
 import '../../providers/prayer_provider.dart';
 import '../../providers/stats_provider.dart';
 import '../../services/notification_service.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:go_router/go_router.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -48,7 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: $e')),
+          SnackBar(content: Text('login_failed'.tr(args: [e.toString()]))),
         );
       }
     } finally {
@@ -65,11 +64,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon:
-              const Icon(Icons.arrow_back_rounded, color: AppColors.lightText),
-        ),
+        automaticallyImplyLeading: false,
       ),
       body: Container(
         width: double.infinity,
@@ -109,7 +104,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             const SizedBox(height: 32),
             Text(
-              'Salah Tracker App',
+              'app_name'.tr(),
+              textAlign: TextAlign.center,
               style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: AppColors.lightText,
@@ -117,10 +113,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Build your consistency with prayer.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.grey,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                'login_build_consistency'.tr(),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.grey,
+                ),
               ),
             ),
             const SizedBox(height: 64),
@@ -145,13 +145,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Color(0xFF0F172A)),
                       )
-                    : const Row(
+                    : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.login_rounded),
                           SizedBox(width: 12),
                           Text(
-                            'Continue with Google',
+                            'login_google'.tr(),
                             style: TextStyle(
                                 fontWeight: FontWeight.w700, fontSize: 16),
                           ),
@@ -160,18 +160,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            // Guest Button
-            TextButton(
-              onPressed: () => context.go('/home'),
-              child: Text(
-                'offline_mode'.tr(),
-                style: const TextStyle(
-                  color: AppColors.grey,
-                  fontWeight: FontWeight.w600,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ),
           ],
         ),
       ),

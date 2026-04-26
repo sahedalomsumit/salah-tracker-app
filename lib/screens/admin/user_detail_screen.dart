@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/remote/supabase_service.dart';
@@ -42,28 +43,30 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm Reset'),
-        content: Text('Are you sure you want to reset the ${SalahDateUtils.getPrayerDisplayName(record.prayerName, record.date)} record for ${record.date} to "Not Logged"?'),
+        title: Text('admin_confirm_reset'.tr()),
+        content: Text('admin_reset_desc'.tr(args: [
+          SalahDateUtils.getPrayerDisplayName(record.prayerName, record.date),
+          record.date
+        ])),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('settings_sign_out_cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.orange),
-            child: const Text('Reset'),
+            child: Text('admin_reset'.tr()),
           ),
         ],
       ),
     );
 
     if (confirmed == true) {
-      await SupabaseService.instance.adminUpdateStatus(
+      await SupabaseService.instance.adminDeleteRecord(
         userId: widget.userId,
         date: record.date,
         prayerName: record.prayerName,
-        status: PrayerStatus.none,
       );
       _loadUserRecords();
     }
@@ -71,7 +74,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final fullName = widget.profile['full_name'] ?? 'Unknown User';
+    final fullName = widget.profile['full_name'] ?? 'admin_unknown_user'.tr();
 
     return Scaffold(
       appBar: AppBar(
@@ -86,19 +89,19 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _records.isEmpty
-              ? const Center(child: Text('No records found for this user'))
+              ? Center(child: Text('admin_no_records'.tr()))
               : ListView.builder(
                   itemCount: _records.length,
                   itemBuilder: (context, index) {
                     final record = _records[index];
                     return ListTile(
                       title: Text('${SalahDateUtils.getPrayerDisplayName(record.prayerName, record.date)} - ${record.date}'),
-                      subtitle: Text('Status: ${record.status.label}'),
+                      subtitle: Text('admin_status'.tr(args: [record.status.labelKey.tr()])),
                       leading: Icon(record.status.icon, color: record.status.color),
                       trailing: IconButton(
                         icon: const Icon(Icons.history_rounded, color: Colors.grey),
                         onPressed: () => _resetRecord(record),
-                        tooltip: 'Reset to default',
+                        tooltip: 'admin_reset_tooltip'.tr(),
                       ),
                     );
                   },
