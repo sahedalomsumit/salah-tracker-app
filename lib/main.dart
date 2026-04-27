@@ -48,16 +48,25 @@ void main() async {
   );
 }
 
-/// Thin wrapper that reads the persisted theme before first render.
-class _AppWithTheme extends ConsumerWidget {
+class _AppWithTheme extends ConsumerStatefulWidget {
   const _AppWithTheme();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Hydrate theme from SharedPreferences on first build
+  ConsumerState<_AppWithTheme> createState() => _AppWithThemeState();
+}
+
+class _AppWithThemeState extends ConsumerState<_AppWithTheme> {
+  @override
+  void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(themeModeProvider.notifier).init();
+      NotificationService.instance.scheduleDailyReminder();
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return const SalahTrackerApp();
   }
 }

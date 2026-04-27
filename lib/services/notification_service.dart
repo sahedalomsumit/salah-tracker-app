@@ -31,9 +31,6 @@ class NotificationService {
 
     // Request permissions on initialization
     await requestPermissions();
-
-    // Schedule the daily reminder
-    await scheduleDailyReminder();
   }
 
   Future<bool> requestPermissions() async {
