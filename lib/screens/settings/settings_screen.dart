@@ -9,7 +9,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/app_info_provider.dart';
 import '../../services/auth_service.dart';
-import '../../services/notification_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -148,42 +147,6 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: themeModeLabel(),
             surfaceColor: surfaceIcon,
             onTap: () => _showThemePicker(context, ref),
-          ),
-          
-          // Notifications Tile
-          _SettingsTile(
-            icon: Icons.notifications_active_outlined,
-            title: 'settings_notifications'.tr(),
-            subtitle: 'settings_notifications_subtitle'.tr(),
-            surfaceColor: surfaceIcon,
-            onTap: () async {
-              await NotificationService.instance.testNotification();
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('settings_test_sent'.tr()),
-                    duration: const Duration(seconds: 2),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
-            },
-          ),
-
-          // Developer Tile
-          _SettingsTile(
-            icon: Icons.person_outline_rounded,
-            title: 'settings_developer'.tr(),
-            subtitle: 'sahedalomsumit.com',
-            surfaceColor: surfaceIcon,
-            onTap: () async {
-              final uri = Uri.parse('https://sahedalomsumit.com');
-              try {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              } catch (e) {
-                debugPrint('Error launching developer URL: $e');
-              }
-            },
           ),
 
           const SizedBox(height: 40),
@@ -372,7 +335,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
           Center(
             child: Text(
-              '© ${DateTime.now().year} Sahed Alom Sumit \n   // ${'settings_built_with'.tr()}',
+              '© ${DateTime.now().year} Sahed Alom Sumit',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppColors.grey.withValues(alpha: 0.5),
@@ -381,6 +344,8 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 8),
+          const Center(child: _BuiltWithFooter()),
           const SizedBox(height: 24),
         ],
       ),
@@ -752,6 +717,93 @@ class _SettingsTile extends StatelessWidget {
         style: const TextStyle(color: AppColors.grey, fontSize: 13),
       ),
       trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.grey),
+    );
+  }
+}
+
+class _BuiltWithFooter extends StatefulWidget {
+  const _BuiltWithFooter();
+
+  @override
+  State<_BuiltWithFooter> createState() => _BuiltWithFooterState();
+}
+
+class _BuiltWithFooterState extends State<_BuiltWithFooter>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: () async {
+        final uri = Uri.parse('https://sahedalomsumit.com');
+        try {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } catch (e) {
+          debugPrint('Error launching developer URL: $e');
+        }
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'settings_built_with'.tr(),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.grey.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 6),
+            ScaleTransition(
+              scale: _animation,
+              child: const Icon(
+                Icons.favorite_rounded,
+                color: Color(0xFFEF4444),
+                size: 16,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'settings_by'.tr(),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.grey.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Sahed',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: const Color(0xFFFF8719),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

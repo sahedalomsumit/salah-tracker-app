@@ -1,7 +1,7 @@
 name: salah_tracker
 description: A modern Salah tracking app — track your 5 daily prayers and see your progress with offline-first support and cloud sync.
 publish_to: 'none'
-version: 1.2.6+10
+version: 1.2.7+11
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
