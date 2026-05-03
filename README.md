@@ -126,8 +126,8 @@ This app is a labor of love for the Ummah. If you find it helpful, please consid
 **Sahed Alom Sumit**
 
 - GitHub: [@sahedalomsumit](https://github.com/sahedalomsumit)
-- Website: [sahed.me](https://sahed.me)
+- Website: [sahedalomsumit.com](https://sahedalomsumit.com)
 
 ---
 
-_© 2026 Sahed Alom Sumit. Built with good vibes and clean code._
+_© 2026 Sahed Alom Sumit. Built with ❤️ by [Sahed](https://sahedalomsumit.com)._
